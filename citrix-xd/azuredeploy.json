@@ -465,7 +465,7 @@
                 "typeHandlerVersion": "1.9",
                 "settings": {
                     "ModulesUrl": "[concat(parameters('assetLocation'),'/ConfigureDDC.zip')]",
-                    "ConfigurationFunction": "Configuration.ps1\\ConfigureDDC",
+                    "ConfigurationFunction": "ConfigureDDC.ps1\\ConfigureDDC",
                     "Properties": {
                         "DomainName": "[parameters('domainName')]",
                         "AdminCreds": {
