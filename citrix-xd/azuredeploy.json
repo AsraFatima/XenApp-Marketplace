@@ -80,21 +80,21 @@
         },
         "portRdp": {
             "type": "string",
-            "defaultValue": "3989",
+            "defaultValue": "8000",
             "metadata": {
                 "description": "The RDP point you will use to interact with the DDC."
             }
         },
         "portDebug": {
             "type": "string",
-            "defaultValue": "8000",
+            "defaultValue": "8001",
             "metadata": {
                 "description": "The port you will use for active debugging of the DDC."
             }
         },
         "portPowershell": {
             "type": "string",
-            "defaultValue": "49221",
+            "defaultValue": "8002",
             "metadata": {
                 "description": "The port you will use for controlling the DDC through powershell."
             }
