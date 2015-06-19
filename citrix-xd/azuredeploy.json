@@ -48,7 +48,6 @@
         },
         "adminUsername": {
             "type": "string",
-            "defaultValue": "cloudguy",
             "metadata": {
                 "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
             }
@@ -77,6 +76,27 @@
             "defaultValue": "10",
             "metadata": {
                 "description": "The build number to use from xdMediaLocation. For example, if xdBuild is 10, then 10.zip will be used."
+            }
+        },
+        "portRdp": {
+            "type": "string",
+            "defaultValue": "3989",
+            "metadata": {
+                "description": "The RDP point you will use to interact with the DDC."
+            }
+        },
+        "portDebug": {
+            "type": "string",
+            "defaultValue": "8000",
+            "metadata": {
+                "description": "The port you will use for active debugging of the DDC."
+            }
+        },
+        "portPowershell": {
+            "type": "string",
+            "defaultValue": "49221",
+            "metadata": {
+                "description": "The port you will use for controlling the DDC through powershell."
             }
         }
     },
@@ -168,7 +188,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
                             },
                             "protocol": "tcp",
-                            "frontendPort": 3389,
+                            "frontendPort": "[parameters('portRdp')]",
                             "backendPort": 3389,
                             "enableFloatingIP": false
                         }
@@ -180,7 +200,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
                             },
                             "protocol": "tcp",
-                            "frontendPort": 7000,
+                            "frontendPort": "[parameters('portDebug')]",
                             "backendPort": 4018,
                             "enableFloatingIP": false
                         }
@@ -192,7 +212,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
                             },
                             "protocol": "tcp",
-                            "frontendPort": 49221,
+                            "frontendPort": "[parameters('portPowershell')]",
                             "backendPort": 5986,
                             "enableFloatingIP": false
                         }
