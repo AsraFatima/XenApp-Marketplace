@@ -464,42 +464,21 @@
                 "type": "DSC",
                 "typeHandlerVersion": "1.9",
                 "settings": {
-                    "ModulesUrl": "[concat(parameters('assetLocation'),'/Configuration.zip')]",
-                    "ConfigurationFunction": "Configuration.ps1\\DomainJoin",
+                    "ModulesUrl": "[concat(parameters('assetLocation'),'/ConfigureDDC.zip')]",
+                    "ConfigurationFunction": "Configuration.ps1\\ConfigureDDC",
                     "Properties": {
                         "DomainName": "[parameters('domainName')]",
                         "AdminCreds": {
                             "UserName": "[parameters('adminUsername')]",
                             "Password": "PrivateSettingsRef:adminPassword"
-                        }
+                        },
+                        "mediaUri": "[concat(parameters('xdMediaLocation'), '/', parameters('xdBuild'), '.zip')]",
+                        "xdRoleType": "Controller"
                     }
                 },
                 "protectedSettings": {
                     "Items": {
                         "adminPassword": "[parameters('adminPassword')]"
-                    }
-                }
-            }
-        },
-		{
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "ddc/xdrole",
-            "apiVersion": "2015-05-01-preview",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-				"[resourceId('Microsoft.Compute/virtualMachines', 'ddc')]",
-                "Microsoft.Compute/virtualMachines/ddc/extensions/domainjoin"
-            ],
-            "properties": {
-                "publisher": "Microsoft.Powershell",
-                "type": "DSC",
-                "typeHandlerVersion": "1.9",
-                "settings": {
-                    "ModulesUrl": "[concat(parameters('assetLocation'),'/xdRole.zip')]",
-                    "ConfigurationFunction": "xdrole.ps1\\xdServerRole",
-                    "Properties": {
-                        "mediaUri": "[concat(parameters('xdMediaLocation'), '/', parameters('xdBuild'), '.zip')]",
-                        "xdRoleType": "Controller"
                     }
                 }
             }
