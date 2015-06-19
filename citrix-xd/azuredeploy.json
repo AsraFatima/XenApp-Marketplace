@@ -213,7 +213,7 @@
                             },
                             "protocol": "tcp",
                             "frontendPort": "[parameters('portPowershell')]",
-                            "backendPort": 5986,
+                            "backendPort": 5985,
                             "enableFloatingIP": false
                         }
                     }
