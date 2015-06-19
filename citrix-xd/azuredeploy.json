@@ -68,7 +68,7 @@
         "xdMediaLocation": {
             "type": "string",
             "metadata": {
-                "description": "The location of XenDesktop installation media"
+                "description": "The location of XenDesktop installation media (typically a container uri)"
             }
         },
         "xdBuild": {
