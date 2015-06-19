@@ -78,7 +78,7 @@
             "metadata": {
                 "description": "The build number to use from xdMediaLocation. For example, if xdBuild is 10, then 10.zip will be used."
             }
-        },
+        }
     },
 
     "variables": {
@@ -196,7 +196,7 @@
                             "backendPort": 5986,
                             "enableFloatingIP": false
                         }
-                    },
+                    }
                 ]
             }
         },
@@ -467,18 +467,19 @@
             "apiVersion": "2015-05-01-preview",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines/extensions', 'ddc/domainjoin')]"
+				"[resourceId('Microsoft.Compute/virtualMachines', 'ddc')]",
+                "Microsoft.Compute/virtualMachines/ddc/extensions/domainjoin"
             ],
             "properties": {
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
                 "typeHandlerVersion": "1.9",
                 "settings": {
-                    "ModulesUrl": "[concat(parameters('assetLocation'),'/xdrole.zip')]",
+                    "ModulesUrl": "[concat(parameters('assetLocation'),'/xdRole.zip')]",
                     "ConfigurationFunction": "xdrole.ps1\\xdServerRole",
                     "Properties": {
                         "mediaUri": "[concat(parameters('xdMediaLocation'), '/', parameters('xdBuild'), '.zip')]",
-                        "xdRoleType": "Controller",
+                        "xdRoleType": "Controller"
                     }
                 }
             }
