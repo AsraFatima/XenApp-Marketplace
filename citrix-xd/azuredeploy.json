@@ -472,8 +472,7 @@
                             "UserName": "[parameters('adminUsername')]",
                             "Password": "PrivateSettingsRef:adminPassword"
                         },
-                        "mediaUri": "[concat(parameters('xdMediaLocation'), '/', parameters('xdBuild'), '.zip')]",
-                        "xdRoleType": "Controller"
+                        "mediaUri": "[concat(parameters('xdMediaLocation'), '/', parameters('xdBuild'), '.zip')]"
                     }
                 },
                 "protectedSettings": {
