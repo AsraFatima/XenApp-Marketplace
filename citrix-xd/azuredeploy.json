@@ -462,7 +462,7 @@
             "properties": {
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
-                "typeHandlerVersion": "1.9",
+                "typeHandlerVersion": "2.*",
                 "settings": {
                     "ModulesUrl": "[concat(parameters('assetLocation'),'/ConfigureDDC.zip')]",
                     "ConfigurationFunction": "ConfigureDDC.ps1\\ConfigureDDC",
