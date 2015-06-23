@@ -1,4 +1,4 @@
-# Domain join sample
+# Citrix XD Deployment Sample
 
 This template demonstrates creating an XD site in a new AD domain up in the cloud. 
 It creates one DC VM, one XD DDC VM and joins it to the domain. Afterwards, XD is installed on the DDC.
