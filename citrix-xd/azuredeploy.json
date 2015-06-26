@@ -502,7 +502,7 @@
 							"privateIPAllocationMethod": "Dynamic",
                             "subnet": {
                                 "id": "[variables('subnet-id')]"
-                            },                        
+                            }                        
 						}
                     }
                 ]
