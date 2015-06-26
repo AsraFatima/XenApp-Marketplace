@@ -44,7 +44,7 @@
 				"Standard_A6",
 				"Standard_A7",
 				"Standard_A8"
-			  ]
+			  ],
             "metadata": {
                 "description": "The size of the virtual machines"
             }
