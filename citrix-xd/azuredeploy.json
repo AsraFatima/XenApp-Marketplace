@@ -417,7 +417,7 @@
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccount'))]",
                 "Microsoft.Network/networkInterfaces/ddc-nif",
-				"[resourceId('Microsoft.Compute/virtualMachines/dc/extensions', 'createadforest')]"
+				"Microsoft.Compute/virtualMachines/dc/extensions/createadforest"
             ],
             "properties": {
                 "hardwareProfile": {
@@ -516,7 +516,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts',parameters('storageAccount'))]",
                 "[resourceId('Microsoft.Network/networkInterfaces','sql-nif')]",
-				"[resourceId('Microsoft.Compute/virtualMachines/dc/extensions', 'createadforest')]"
+				"Microsoft.Compute/virtualMachines/dc/extensions/createadforest"
             ],
             "properties": {
                 "hardwareProfile": {
