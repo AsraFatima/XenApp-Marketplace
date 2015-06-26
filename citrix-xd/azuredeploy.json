@@ -34,6 +34,17 @@
         "vmSize": {
             "type": "string",
             "defaultValue": "Standard_A2",
+			"allowedValues": [
+				"Standard_A0",
+				"Standard_A1",
+				"Standard_A2",
+				"Standard_A3",
+				"Standard_A4",
+				"Standard_A5",
+				"Standard_A6",
+				"Standard_A7",
+				"Standard_A8"
+			  ]
             "metadata": {
                 "description": "The size of the virtual machines"
             }
@@ -73,9 +84,9 @@
         },
         "xdBuild": {
             "type": "string",
-            "defaultValue": "10",
+            "defaultValue": "17",
             "metadata": {
-                "description": "The build number to use from xdMediaLocation. For example, if xdBuild is 10, then 10.zip will be used."
+                "description": "The build number to use from xdMediaLocation. For example, if xdBuild is 17, then 17.zip will be used."
             }
         },
         "portRdp": {
