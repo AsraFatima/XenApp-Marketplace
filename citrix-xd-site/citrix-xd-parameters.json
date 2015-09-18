@@ -34,6 +34,24 @@
     },
     "certificateUrl": {
       "value": ""
+    },
+    "netscalerLicense": {
+      "value": ""
+    },
+    "encodedCertificate": {
+      "value": ""
+    },
+    "encodedCertificateKey": {
+      "value": ""
+    },
+    "encodedAuthorityCertificate1": {
+      "value": ""
+    },
+    "encodedAuthorityCertificate2": {
+      "value": ""
+    },
+    "fqdn": {
+      "value": ""
     }
   }
 }
