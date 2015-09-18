@@ -132,14 +132,6 @@
       }
     },
 	
-	"assetLocation": {
-		"type": "string",
-		"defaultValue": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
-		"metadata": {
-			"description": "The location of resources such as templates and DSC modules that the script is dependent"
-		}
-	},
-	
     "_artifactsLocationSasToken": {
       "type": "securestring"
     }

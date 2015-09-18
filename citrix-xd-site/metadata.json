@@ -1,0 +1,7 @@
+{
+	"itemDisplayName": "Citrix XD Site Deployment Sample",
+	"description": "This template demonstrates the creation of a self-contained XD deployment in Azure",
+	"summary": "After deployment, the components are fully configured and a simple XenDesktop site is created in a number of steps.",
+	"githubUsername": "jamessto",
+	"dateUpdated": "2015-09-17"
+}
