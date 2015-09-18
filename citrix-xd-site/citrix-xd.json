@@ -130,8 +130,49 @@
       "metadata": {
         "description": "Url of the certificate with version in KeyVault e.g. https://testault.vault.azure.net/secrets/testcert/b621es1db241e56a72d037479xab1r7"
       }
+    },
+
+    "netscalerLicense": {
+      "type": "string",
+      "metadata": {
+        "description": "Base64 encoding of Netscaler license"
+      }
+    },
+
+    "encodedCertificate": {
+      "type": "string",
+      "metadata": {
+        "description": "Base64 encoding of certificate to be installed in Netscaler"
+      }
+    },
+
+    "encodedCertificateKey": {
+      "type": "string",
+      "metadata": {
+        "description": "Base64 encoding of certificate key to be installed in Netscaler"
+      }
+    },
+
+    "encodedAuthorityCertificate1": {
+      "type": "string",
+      "metadata": {
+        "description": "Base64 encoding of first authority certificate to be installed in Netscaler"
+      }
+    },
+
+    "encodedAuthorityCertificate2": {
+      "type": "string",
+      "metadata": {
+        "description": "Base64 encoding of second authority certificate to be installed in Netscaler"
+      }
+    },
+
+    "fqdn": {
+      "type": "string",
+      "metadata": {
+        "description": "Fully qualified domain name which will be used to connect to resources from outside. Must match certificate deployed to the Nestcaler."
+      }
     }
-	
   },
 
   "variables": {
@@ -824,7 +865,20 @@
                 "AdminCreds": {
                   "UserName": "[parameters('adminUsername')]",
                   "Password": "PrivateSettingsRef:adminPassword"
-                }
+                },
+                "NetscalerIP": "[variables('nsServerPrivateIp')]",
+                "License": "[parameters('netscalerLicense')]",
+                "Certificate": "[parameters('encodedCertificate')]",
+                "CertificateKey": "[parameters('encodedCertificateKey')]",
+                "AuthorityCertificate1": "[parameters('encodedAuthorityCertificate1')]",
+                "AuthorityCertificate2": "[parameters('encodedAuthorityCertificate2')]",
+                "DomainController": "[variables('domainServerPrivateIp')]",
+                "StorefrontServer": "[variables('sfServerPrivateIp')]",
+                "DeliveryController": "[variables('ddcServerPrivateIp')]",
+                "VirtualServerName": "SF",
+                "VirtualServerPort": 11443,
+                "GatewayName": "MyNetscaler",
+                "FQDN": "[parameters('fqdn')]"
               }
             },
             "protectedSettings": {
