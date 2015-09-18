@@ -131,14 +131,11 @@
         "description": "Url of the certificate with version in KeyVault e.g. https://testault.vault.azure.net/secrets/testcert/b621es1db241e56a72d037479xab1r7"
       }
     },
-	
-    "_artifactsLocationSasToken": {
-      "type": "securestring"
-    }
   },
 
   "variables": {
     "artifactsLocation": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
+    "artifactsLocationSasToken": "",
 
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
@@ -559,7 +556,7 @@
             "typeHandlerVersion": "2.3",
             "settings": {
               "modulesUrl": "[variables('domainCreateConfigurationFile')]",
-              "sasToken": "[parameters('_artifactsLocationSasToken')]",
+              "sasToken": "[variables('artifactsLocationSasToken')]",
               "configurationFunction": "[variables('domainCreateConfigurationFunction')]",
               "Properties": {
                 "AdminCreds": {
@@ -710,7 +707,7 @@
             "typeHandlerVersion": "2.3",
             "settings": {
               "modulesUrl": "[variables('siteConfigurationFile')]",
-              "sasToken": "[parameters('_artifactsLocationSasToken')]",
+              "sasToken": "[variables('artifactsLocationSasToken')]",
               "configurationFunction": "[variables('siteConfigurationFunction')]",
               "Properties": {
                 "DomainName": "[parameters('domainName')]",
@@ -819,7 +816,7 @@
             "typeHandlerVersion": "2.3",
             "settings": {
               "modulesUrl": "[variables('storefrontJoinConfigurationFile')]",
-              "sasToken": "[parameters('_artifactsLocationSasToken')]",
+              "sasToken": "[variables('artifactsLocationSasToken')]",
               "configurationFunction": "[variables('storefrontJoinConfigurationFunction')]",
               "Properties": {
                 "DomainName": "[parameters('domainName')]",
@@ -968,7 +965,7 @@
             "typeHandlerVersion": "2.3",
             "settings": {
               "modulesUrl": "[variables('sqlJoinConfigurationFile')]",
-              "sasToken": "[parameters('_artifactsLocationSasToken')]",
+              "sasToken": "[variables('artifactsLocationSasToken')]",
               "configurationFunction": "[variables('sqlJoinConfigurationFunction')]",
               "Properties": {
                 "DomainName": "[parameters('domainName')]",
@@ -1075,7 +1072,7 @@
             "typeHandlerVersion": "2.3",
             "settings": {
               "modulesUrl": "[variables('domainJoinConfigurationFile')]",
-              "sasToken": "[parameters('_artifactsLocationSasToken')]",
+              "sasToken": "[variables('artifactsLocationSasToken')]",
               "configurationFunction": "[variables('domainJoinConfigurationFunction')]",
               "Properties": {
                 "DomainName": "[parameters('domainName')]",
@@ -1278,7 +1275,7 @@
                     "typeHandlerVersion": "2.3",
                     "settings": {
                       "modulesUrl": "[variables('vdaJoinConfigurationFile')]",
-                      "sasToken": "[parameters('_artifactsLocationSasToken')]",
+                      "sasToken": "[variables('artifactsLocationSasToken')]",
                       "configurationFunction": "[variables('vdaJoinConfigurationFunction')]",
                       "Properties": {
                         "DomainName": "[parameters('domainName')]",
