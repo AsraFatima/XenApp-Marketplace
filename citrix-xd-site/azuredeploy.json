@@ -131,7 +131,15 @@
         "description": "Url of the certificate with version in KeyVault e.g. https://testault.vault.azure.net/secrets/testcert/b621es1db241e56a72d037479xab1r7"
       }
     },
-
+	
+	"assetLocation": {
+		"type": "string",
+		"defaultValue": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
+		"metadata": {
+			"description": "The location of resources such as templates and DSC modules that the script is dependent"
+		}
+	},
+	
     "_artifactsLocationSasToken": {
       "type": "securestring"
     }
