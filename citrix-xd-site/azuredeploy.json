@@ -1,116 +1,141 @@
 ﻿{
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+  "contentVersion": "1.0.0.0",
 
-    "parameters": {
+  "parameters": {
 
-        "publicDnsName": {
-            "type": "string",
-            "metadata": {
-                "description": "Unique public DNS prefix for the deployment. The fqdn will look something like '<dnsname>.westus.cloudapp.azure.com'. Up to 62 chars, digits or dashes, lowercase, should start with a letter: must conform to '^[a-z][a-z0-9-]{1,61}[a-z0-9]$'."
-            }
-        },
-
-        "storageAccount": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the Storage Account. This has to be a uinique name, up to 24 chars, all lowercase."
-            }
-        },
-
-        "windowsOSVersion": {
-            "type": "string",
-            "defaultValue": "2012-R2-Datacenter",
-            "allowedValues": [
-                "2008-R2-SP1",
-                "2012-Datacenter",
-                "2012-R2-Datacenter"
-            ],
-            "metadata": {
-                "description": "Windows OS version for the VM, allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
-            }
-        },
-
-        "vmSize": {
-            "type": "string",
-            "defaultValue": "Standard_A2",
-			"allowedValues": [
-				"Standard_A0",
-				"Standard_A1",
-				"Standard_A2",
-				"Standard_A3",
-				"Standard_A4",
-				"Standard_A5",
-				"Standard_A6",
-				"Standard_A7",
-				"Standard_A8"
-			  ],
-            "metadata": {
-                "description": "The size of the virtual machines"
-            }
-        },
-
-        "domainName": {
-            "type": "string",
-            "defaultValue": "test.local",
-            "metadata": {
-                "description": "The FQDN of the AD domain"
-            }
-        },
-        "adminUsername": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
-            }
-        },
-        "adminPassword": {
-            "type": "securestring",
-            "metadata": {
-                "description": "The password for the administrator account of the new VM and the domain"
-            }
-        },
-        "assetLocation": {
-            "type": "string",
-            "defaultValue": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd",
-            "metadata": {
-                "description": "The location of resources such as templates and DSC modules that the script is dependent"
-            }
-        },
-        "xdMediaLocation": {
-            "type": "string",
-            "metadata": {
-                "description": "The location of XenDesktop installation media (typically a container uri)"
-            }
-        },
-        "xdBuild": {
-            "type": "string",
-            "defaultValue": "17",
-            "metadata": {
-                "description": "The build number to use from xdMediaLocation. For example, if xdBuild is 17, then 17.zip will be used."
-            }
-        },
-        "portRdp": {
-            "type": "string",
-            "defaultValue": "8000",
-            "metadata": {
-                "description": "The RDP point you will use to interact with the DDC."
-            }
-        },
-        "portDebug": {
-            "type": "string",
-            "defaultValue": "8001",
-            "metadata": {
-                "description": "The port you will use for active debugging of the DDC."
-            }
-        },
-        "portPowershell": {
-            "type": "string",
-            "defaultValue": "8002",
-            "metadata": {
-                "description": "The port you will use for controlling the DDC through powershell."
-            }
-        }
+    "vhdStorage": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Storage Account (must already exist and house vhds currently used in place of gallery images). This has to be a uinique name, up to 24 chars, all lowercase."
+      }
     },
+
+    "vhdStorageGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Group where storage exists"
+      }
+    },
+
+    "publicDnsName": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique public DNS prefix for the deployment. The fqdn will look something like '<dnsname>.westus.cloudapp.azure.com'. Up to 62 chars, digits or dashes, lowercase, should start with a letter: must conform to '^[a-z][a-z0-9-]{1,61}[a-z0-9]$'."
+      }
+    },
+
+    "windowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter"
+      ],
+      "metadata": {
+        "description": "Windows OS version for the VM, allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      }
+    },
+
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_A2",
+      "allowedValues": [
+        "Standard_A0",
+        "Standard_A1",
+        "Standard_A2",
+        "Standard_A3",
+        "Standard_A4",
+        "Standard_A5",
+        "Standard_A6",
+        "Standard_A7",
+        "Standard_A8"
+      ],
+      "metadata": {
+        "description": "The size of the virtual machines"
+      }
+    },
+
+    "domainName": {
+      "type": "string",
+      "defaultValue": "test.local",
+      "metadata": {
+        "description": "The FQDN of the AD domain"
+      }
+    },
+
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
+      }
+    },
+
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the administrator account of the new VM and the domain"
+      }
+    },
+
+    "siteName": {
+      "type": "string",
+      "defaultValue": "TestSite",
+      "metadata": {
+        "description": "The name of the XenDesktop site"
+      }
+    },
+
+    "portRdp": {
+      "type": "int",
+      "defaultValue": "8000",
+      "metadata": {
+        "description": "The RDP point you will use to interact with the DDC."
+      }
+    },
+
+    "portDebug": {
+      "type": "int",
+      "defaultValue": "8001",
+      "metadata": {
+        "description": "The port you will use for active debugging of the DDC."
+      }
+    },
+
+    "portPowershell": {
+      "type": "int",
+      "defaultValue": "8002",
+      "metadata": {
+        "description": "The port you will use for controlling the DDC through powershell."
+      }
+    },
+
+    "vaultName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the KeyVault"
+      }
+    },
+
+    "vaultResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group of the KeyVault"
+      }
+    },
+
+    "certificateUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Url of the certificate with version in KeyVault e.g. https://testault.vault.azure.net/secrets/testcert/b621es1db241e56a72d037479xab1r7"
+      }
+    },
+	
+    "_artifactsLocationSasToken": {
+      "type": "securestring"
+    }
+  },
 
   "variables": {
     "artifactsLocation": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
