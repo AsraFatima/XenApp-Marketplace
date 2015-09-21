@@ -1,6 +1,6 @@
 # Citrix XD Site Deployment Sample
 
-This template demonstrates the creation of a self-contained XD deployment in Azure, deploying the following resources:
+This template demonstrates the creation of a self-contained XD deployment in Azure, creating the following resources:
 
 * XenDesktop Desktop Delivery Controller
 * SQL Server
@@ -28,12 +28,6 @@ xd-arthur.vhd | Full XenDesktop installation
 xd-arthur-rdsh.vhd | Server VDA installation
 xd-arthur-vdi.vhd | Server VDI installation
 
-2) An Azure KeyVault with a certificate deployed as a secret. It is referenced in the parameters 'vaultName,' 'vaultResourceGroup,' and 'certificateUrl.' The given certificate is installed on all windows machines and bound to their WinRM listeners. For more information about KeyVaults in Azure, see:
-
-* <a href="http://blogs.technet.com/b/kv/archive/2015/07/14/vm_2d00_certificates.aspx">KeyVault step-by-step</a>
-* <a href="https://github.com/Azure/azure-quickstart-templates/tree/master/101-create-key-vault">Deploying a KeyVault with Azure Resource Manager</a>
-* <a href="https://msdn.microsoft.com/en-us/library/ff699202.aspx">Generating a test certificate</a>
-
 Click the button below to deploy
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Falexstoddard%2Fazure-quickstart-templates%2Fmaster%2Fcitrix-xd-site%2Fcitrix-xd.json" target="_blank">
@@ -53,10 +47,9 @@ Template parameters:
 | adminUsername | Domain and Citrix admin username. |
 | adminPassword | Domain and Citrix admin password. |
 | siteName | Name of the XenDesktop site to be created (e.g. 'AzureSite'.) |
-| portRdp | The RDP point you will use to interact with the DDC. |
-| portDebug | The port you will use for active debugging of the DDC. |
-| portPowershell | The port you will use for controlling the DDC through powershell. |
-| vaultName | Name of the KeyVault containing your certificate secret. |
-| vaultResourceGroup | Name of the resource group containing KeyVault 'vaultName.' |
-| certificateUrl | Url of the certificate to be installed on the Windows machines. |
+| encodedNetscalerLicense | Base64 encoded Netscaler license file |
+| encodedCertificate | Base64 encoded certificate to be installed in Netscaler. |
+| encodedCertificateKey | Base64 encoded private key corresponding to certificate being installed in Netscaler. |
+| encodedAuthorityCertificate1 | Base64 encoded certificate for first Root CA. |
+| encodedAuthorityCertificate2 | Base64 encoded certificate for second Root CA. |
 

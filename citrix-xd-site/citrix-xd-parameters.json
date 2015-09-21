@@ -10,32 +10,17 @@
     },
     "adminUsername": {
       "value": ""
-    },
-    "portRdp": {
-      "value": 0
-    },
-    "portDebug": {
-      "value": 1
-    },
-    "portPowershell": {
-      "value": 2
-    },
+    }
     "vhdStorageGroup": {
       "value": ""
     },
     "adminPassword": {
       "value": ""
     },
-    "vaultName": {
+    "fqdn": {
       "value": ""
-    },
-    "vaultResourceGroup": {
-      "value": ""
-    },
-    "certificateUrl": {
-      "value": ""
-    },
-    "netscalerLicense": {
+    }
+    "encodedNetscalerLicense": {
       "value": ""
     },
     "encodedCertificate": {
@@ -48,9 +33,6 @@
       "value": ""
     },
     "encodedAuthorityCertificate2": {
-      "value": ""
-    },
-    "fqdn": {
       "value": ""
     }
   }

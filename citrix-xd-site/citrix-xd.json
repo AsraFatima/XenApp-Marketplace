@@ -87,52 +87,14 @@
       }
     },
 
-    "portRdp": {
-      "type": "int",
-      "defaultValue": "8000",
-      "metadata": {
-        "description": "The RDP point you will use to interact with the DDC."
-      }
-    },
-
-    "portDebug": {
-      "type": "int",
-      "defaultValue": "8001",
-      "metadata": {
-        "description": "The port you will use for active debugging of the DDC."
-      }
-    },
-
-    "portPowershell": {
-      "type": "int",
-      "defaultValue": "8002",
-      "metadata": {
-        "description": "The port you will use for controlling the DDC through powershell."
-      }
-    },
-
-    "vaultName": {
+    "fqdn": {
       "type": "string",
       "metadata": {
-        "description": "Name of the KeyVault"
+        "description": "Fully qualified domain name which will be used to connect to resources from outside. Must match certificate deployed to the Nestcaler."
       }
     },
 
-    "vaultResourceGroup": {
-      "type": "string",
-      "metadata": {
-        "description": "Resource Group of the KeyVault"
-      }
-    },
-
-    "certificateUrl": {
-      "type": "string",
-      "metadata": {
-        "description": "Url of the certificate with version in KeyVault e.g. https://testault.vault.azure.net/secrets/testcert/b621es1db241e56a72d037479xab1r7"
-      }
-    },
-
-    "netscalerLicense": {
+    "encodedNetscalerLicense": {
       "type": "string",
       "metadata": {
         "description": "Base64 encoding of Netscaler license"
@@ -164,13 +126,6 @@
       "type": "string",
       "metadata": {
         "description": "Base64 encoding of second authority certificate to be installed in Netscaler"
-      }
-    },
-
-    "fqdn": {
-      "type": "string",
-      "metadata": {
-        "description": "Fully qualified domain name which will be used to connect to resources from outside. Must match certificate deployed to the Nestcaler."
       }
     }
   },
@@ -371,18 +326,6 @@
             }
           },
           {
-            "name": "ddcps",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
-              },
-              "protocol": "tcp",
-              "frontendPort": 8001,
-              "backendPort": 5986,
-              "enableFloatingIP": false
-            }
-          },
-          {
             "name": "dcrdp",
             "properties": {
               "frontendIPConfiguration": {
@@ -395,18 +338,6 @@
             }
           },
           {
-            "name": "dcps",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
-              },
-              "protocol": "tcp",
-              "frontendPort": 8000,
-              "backendPort": 5986,
-              "enableFloatingIP": false
-            }
-          },
-          {
             "name": "sqlrdp",
             "properties": {
               "frontendIPConfiguration": {
@@ -415,18 +346,6 @@
               "protocol": "tcp",
               "frontendPort": 9174,
               "backendPort": 3389,
-              "enableFloatingIP": false
-            }
-          },
-          {
-            "name": "sqlps",
-            "properties": {
-              "frontendIPConfiguration": {
-                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
-              },
-              "protocol": "tcp",
-              "frontendPort": 8002,
-              "backendPort": 5986,
               "enableFloatingIP": false
             }
           },
@@ -485,9 +404,6 @@
               "loadBalancerInboundNatRules": [
                 {
                   "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/dcrdp')]"
-                },
-                {
-                  "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/dcps')]"
                 }
               ]
             }
@@ -515,32 +431,8 @@
           "computerName": "dc",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "secrets": [
-            {
-              "sourceVault": {
-                "id": "[resourceId(parameters('vaultResourceGroup'), 'Microsoft.KeyVault/vaults', parameters('vaultName'))]"
-              },
-              "vaultCertificates": [
-                {
-                  "certificateUrl": "[parameters('certificateUrl')]",
-                  "certificateStore": "My"
-                }
-              ]
-            }
-          ],
           "windowsConfiguration": {
             "provisionVMAgent": "true",
-            "winRM": {
-              "listeners": [
-                {
-                  "protocol": "http"
-                },
-                {
-                  "protocol": "https",
-                  "certificateUrl": "[parameters('certificateUrl')]"
-                }
-              ]
-            },
             "enableAutomaticUpdates": "true"
           }
         },
@@ -645,9 +537,6 @@
               "loadBalancerInboundNatRules": [
                 {
                   "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/ddcrdp')]"
-                },
-                {
-                  "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/ddcps')]"
                 }
               ]
             }
@@ -677,32 +566,8 @@
           "computerName": "ddc",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "secrets": [
-            {
-              "sourceVault": {
-                "id": "[resourceId(parameters('vaultResourceGroup'), 'Microsoft.KeyVault/vaults', parameters('vaultName'))]"
-              },
-              "vaultCertificates": [
-                {
-                  "certificateUrl": "[parameters('certificateUrl')]",
-                  "certificateStore": "My"
-                }
-              ]
-            }
-          ],
           "windowsConfiguration": {
             "provisionVMAgent": "true",
-            "winRM": {
-              "listeners": [
-                {
-                  "protocol": "http"
-                },
-                {
-                  "protocol": "https",
-                  "certificateUrl": "[parameters('certificateUrl')]"
-                }
-              ]
-            },
             "enableAutomaticUpdates": "true"
           }
         },
@@ -855,7 +720,7 @@
           "properties": {
             "publisher": "Microsoft.Powershell",
             "type": "DSC",
-            "typeHandlerVersion": "2.3",
+            "typeHandlerVersion": "2.4",
             "settings": {
               "modulesUrl": "[variables('storefrontJoinConfigurationFile')]",
               "sasToken": "[variables('artifactsLocationSasToken')]",
@@ -867,7 +732,7 @@
                   "Password": "PrivateSettingsRef:adminPassword"
                 },
                 "NetscalerIP": "[variables('nsServerPrivateIp')]",
-                "License": "[parameters('netscalerLicense')]",
+                "License": "[parameters('encodedNetscalerLicense')]",
                 "Certificate": "[parameters('encodedCertificate')]",
                 "CertificateKey": "[parameters('encodedCertificateKey')]",
                 "AuthorityCertificate1": "[parameters('encodedAuthorityCertificate1')]",
@@ -917,9 +782,6 @@
               "loadBalancerInboundNatRules": [
                 {
                   "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/sqlrdp')]"
-                },
-                {
-                  "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/sqlps')]"
                 }
               ]
             }
@@ -949,32 +811,8 @@
           "computerName": "sql",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "secrets": [
-            {
-              "sourceVault": {
-                "id": "[resourceId(parameters('vaultResourceGroup'), 'Microsoft.KeyVault/vaults', parameters('vaultName'))]"
-              },
-              "vaultCertificates": [
-                {
-                  "certificateUrl": "[parameters('certificateUrl')]",
-                  "certificateStore": "My"
-                }
-              ]
-            }
-          ],
           "windowsConfiguration": {
             "provisionVMAgent": "true",
-            "winRM": {
-              "listeners": [
-                {
-                  "protocol": "http"
-                },
-                {
-                  "protocol": "https",
-                  "certificateUrl": "[parameters('certificateUrl')]"
-                }
-              ]
-            },
             "enableAutomaticUpdates": "true"
           }
         },
