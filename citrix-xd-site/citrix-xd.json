@@ -95,35 +95,35 @@
     },
 
     "encodedNetscalerLicense": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "description": "Base64 encoding of Netscaler license"
       }
     },
 
     "encodedCertificate": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "description": "Base64 encoding of certificate to be installed in Netscaler"
       }
     },
 
     "encodedCertificateKey": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "description": "Base64 encoding of certificate key to be installed in Netscaler"
       }
     },
 
     "encodedAuthorityCertificate1": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "description": "Base64 encoding of first authority certificate to be installed in Netscaler"
       }
     },
 
     "encodedAuthorityCertificate2": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "description": "Base64 encoding of second authority certificate to be installed in Netscaler"
       }
@@ -131,7 +131,7 @@
   },
 
   "variables": {
-    "artifactsLocation": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
+	"artifactsLocation": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
     "artifactsLocationSasToken": "",
 
     "imagePublisher": "MicrosoftWindowsServer",
