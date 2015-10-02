@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
 
@@ -133,7 +133,7 @@
   "variables": {
 	"artifactsLocation": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
     "artifactsLocationSasToken": "",
-
+	
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
 
@@ -145,6 +145,8 @@
     "userVdaImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userVdaImageVhdName'))]",
 
     "availabilitySetName": "availabilitySet",
+
+    "catalogCreateScriptFileUri": "[concat(variables('artifactsLocation'), '/', 'CatalogCreate.ps1')]",
 
     "vnetAddressRange": "10.0.0.0/16",
     "subnetName": "Subnet",
@@ -185,7 +187,7 @@
     "vdaJoinConfigurationFile": "[concat(variables('artifactsLocation'), '/', 'VDAJoin.ps1.zip')]",
     "vdaJoinConfigurationFunction": "VDAJoin.ps1\\VDAJoin",
 
-    "dscVersion": "2.3"
+    "dscVersion": "2.6"
   },
 
   "resources": [
@@ -383,7 +385,6 @@
       "name": "dc-nic",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "Microsoft.Network/virtualNetworks/virtualNetwork",
         "Microsoft.Network/loadBalancers/loadBalancer"
       ],
       "properties": {
@@ -472,6 +473,7 @@
           ]
         }
       },
+
       "resources": [
         {
           "type": "extensions",
@@ -487,7 +489,7 @@
           "properties": {
             "publisher": "Microsoft.Powershell",
             "type": "DSC",
-            "typeHandlerVersion": "2.3",
+            "typeHandlerVersion":  "[variables('dscVersion')]",
             "settings": {
               "modulesUrl": "[variables('domainCreateConfigurationFile')]",
               "sasToken": "[variables('artifactsLocationSasToken')]",
@@ -516,7 +518,6 @@
       "name": "ddc-nic",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "Microsoft.Network/loadBalancers/loadBalancer",
         "Microsoft.Network/networkInterfaces/dc-nic"
       ],
       "properties": {
@@ -552,7 +553,6 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "Microsoft.Network/networkInterfaces/ddc-nic",
-        "Microsoft.Compute/virtualMachines/dc/extensions/domaincreate",
         "Microsoft.Resources/deployments/updatevnetdns"
       ],
       "properties": {
@@ -601,7 +601,6 @@
           "location": "[resourceGroup().location]",
           "dependsOn": [
             "[resourceId('Microsoft.Compute/virtualMachines', 'ddc')]",
-            "[resourceId('Microsoft.Compute/virtualMachines', 'sql')]",
             "Microsoft.Compute/virtualMachines/sql/extensions/domainjoin",
             "Microsoft.Compute/virtualMachines/lic/extensions/domainjoin"
           ],
@@ -611,7 +610,7 @@
           "properties": {
             "publisher": "Microsoft.Powershell",
             "type": "DSC",
-            "typeHandlerVersion": "2.3",
+            "typeHandlerVersion":  "[variables('dscVersion')]",
             "settings": {
               "modulesUrl": "[variables('siteConfigurationFile')]",
               "sasToken": "[variables('artifactsLocationSasToken')]",
@@ -619,6 +618,8 @@
               "Properties": {
                 "DomainName": "[parameters('domainName')]",
                 "SiteName": "[parameters('siteName')]",
+                "SQLServer": "[variables('sqlServerName')]",
+                "LicenseServer": "[variables('licServerName')]",
                 "AdminCreds": {
                   "UserName": "[parameters('adminUsername')]",
                   "Password": "PrivateSettingsRef:adminPassword"
@@ -641,7 +642,6 @@
       "name": "sf-nic",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "Microsoft.Network/loadBalancers/loadBalancer",
         "Microsoft.Network/networkInterfaces/dc-nic"
       ],
       "properties": {
@@ -667,7 +667,6 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "Microsoft.Network/networkInterfaces/sf-nic",
-        "Microsoft.Compute/virtualMachines/dc/extensions/domaincreate",
         "Microsoft.Resources/deployments/updatevnetdns"
       ],
       "properties": {
@@ -720,7 +719,7 @@
           "properties": {
             "publisher": "Microsoft.Powershell",
             "type": "DSC",
-            "typeHandlerVersion": "2.4",
+            "typeHandlerVersion":  "[variables('dscVersion')]",
             "settings": {
               "modulesUrl": "[variables('storefrontJoinConfigurationFile')]",
               "sasToken": "[variables('artifactsLocationSasToken')]",
@@ -762,7 +761,6 @@
       "name": "sql-nic",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "Microsoft.Network/loadBalancers/loadBalancer",
         "Microsoft.Network/networkInterfaces/dc-nic"
       ],
       "properties": {
@@ -797,7 +795,6 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "Microsoft.Network/networkInterfaces/sql-nic",
-        "Microsoft.Compute/virtualMachines/dc/extensions/domaincreate",
         "Microsoft.Resources/deployments/updatevnetdns"
       ],
       "properties": {
@@ -855,7 +852,7 @@
           "properties": {
             "publisher": "Microsoft.Powershell",
             "type": "DSC",
-            "typeHandlerVersion": "2.3",
+            "typeHandlerVersion":  "[variables('dscVersion')]",
             "settings": {
               "modulesUrl": "[variables('sqlJoinConfigurationFile')]",
               "sasToken": "[variables('artifactsLocationSasToken')]",
@@ -884,7 +881,6 @@
       "name": "lic-nic",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "Microsoft.Network/loadBalancers/loadBalancer",
         "Microsoft.Network/networkInterfaces/dc-nic"
       ],
       "properties": {
@@ -910,7 +906,6 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "Microsoft.Network/networkInterfaces/lic-nic",
-        "Microsoft.Compute/virtualMachines/dc/extensions/domaincreate",
         "Microsoft.Resources/deployments/updatevnetdns"
       ],
       "properties": {
@@ -962,7 +957,7 @@
           "properties": {
             "publisher": "Microsoft.Powershell",
             "type": "DSC",
-            "typeHandlerVersion": "2.3",
+            "typeHandlerVersion": "[variables('dscVersion')]",
             "settings": {
               "modulesUrl": "[variables('domainJoinConfigurationFile')]",
               "sasToken": "[variables('artifactsLocationSasToken')]",
@@ -991,8 +986,7 @@
       "name": "ns-nic",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "Microsoft.Network/loadBalancers/loadBalancer",
-        "Microsoft.Network/virtualNetworks/virtualNetwork"
+        "Microsoft.Network/loadBalancers/loadBalancer"
       ],
       "properties": {
         "ipConfigurations": [
@@ -1000,15 +994,19 @@
             "name": "ipconfig",
             "properties": {
               "privateIPAllocationMethod": "Static",
+              
               "privateIPAddress": "[variables('nsServerPrivateIp')]",
+              
               "subnet": {
                 "id": "[variables('subnet-id')]"
               },
+
               "loadBalancerBackendAddressPools": [
                 {
                   "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/backendAddressPools/LBBAP')]"
                 }
               ],
+
               "loadBalancerInboundNatRules": [
                 {
                   "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/nshttp')]"
@@ -1086,7 +1084,6 @@
         "count": 5
       },
       "dependsOn": [
-        "Microsoft.Compute/virtualMachines/dc/extensions/domaincreate",
         "Microsoft.Resources/deployments/updatevnetdns"
       ],
       "properties": {
@@ -1165,7 +1162,7 @@
                   "properties": {
                     "publisher": "Microsoft.Powershell",
                     "type": "DSC",
-                    "typeHandlerVersion": "2.3",
+                    "typeHandlerVersion":  "[variables('dscVersion')]",
                     "settings": {
                       "modulesUrl": "[variables('vdaJoinConfigurationFile')]",
                       "sasToken": "[variables('artifactsLocationSasToken')]",
