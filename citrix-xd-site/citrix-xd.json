@@ -133,7 +133,7 @@
   "variables": {
 	"artifactsLocation": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
     "artifactsLocationSasToken": "",
-	
+
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
 
@@ -141,12 +141,12 @@
 
     "userDdcImageVhdName": "xd-arthur.vhd",
     "userDdcImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userDdcImageVhdName'))]",
-    "userVdaImageVhdName": "xd-arthur-rdsh.vhd",
-    "userVdaImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userVdaImageVhdName'))]",
+    "userVdaRDSImageVhdName": "xd-arthur-rdsh.vhd",
+    "userVdaRDSImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userVdaRDSImageVhdName'))]",
+    "userVdaVDIImageVhdName": "xd-arthur-vdi.vhd",
+    "userVdaVDIImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userVdaVDIImageVhdName'))]",
 
     "availabilitySetName": "availabilitySet",
-
-    "catalogCreateScriptFileUri": "[concat(variables('artifactsLocation'), '/', 'CatalogCreate.ps1')]",
 
     "vnetAddressRange": "10.0.0.0/16",
     "subnetName": "Subnet",
@@ -183,7 +183,9 @@
     "nsServerName": "ns",
     "nsServerPrivateIp": "10.0.0.11",
 
-    "vdaServerPrefix": "vda",
+    "vdaRDSServerPrefix": "xd-vda",
+    "vdaVDIServerPrefix": "xd-desk-vda",
+
     "vdaJoinConfigurationFile": "[concat(variables('artifactsLocation'), '/', 'VDAJoin.ps1.zip')]",
     "vdaJoinConfigurationFunction": "VDAJoin.ps1\\VDAJoin",
 
@@ -1078,10 +1080,10 @@
     {
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
-      "name": "[concat('createvdas', copyIndex())]",
+      "name": "[concat('createrdsvdas', copyIndex())]",
       "copy": {
-        "name": "vdaLoop",
-        "count": 5
+        "name": "vdaRDSLoop",
+        "count": 1
       },
       "dependsOn": [
         "Microsoft.Resources/deployments/updatevnetdns"
@@ -1095,7 +1097,7 @@
             {
               "apiVersion": "2015-05-01-preview",
               "type": "Microsoft.Network/networkInterfaces",
-              "name": "[concat(variables('vdaServerPrefix'),'-nic-', copyIndex())]",
+              "name": "[concat(variables('vdaRDSServerPrefix'),'-nic-', copyIndex())]",
               "location": "[resourceGroup().location]",
               "properties": {
                 "ipConfigurations": [
@@ -1114,17 +1116,17 @@
             {
               "apiVersion": "2015-05-01-preview",
               "type": "Microsoft.Compute/virtualMachines",
-              "name": "[concat(variables('vdaServerPrefix'), '-', copyIndex())]",
+              "name": "[concat(variables('vdaRDSServerPrefix'), '-', copyIndex())]",
               "location": "[resourceGroup().location]",
               "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('vdaServerPrefix'), '-nic-', copyIndex())]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vdaRDSServerPrefix'), '-nic-', copyIndex())]"
               ],
               "properties": {
                 "hardwareProfile": {
                   "vmSize": "[parameters('vmSize')]"
                 },
                 "osProfile": {
-                  "computerName": "[concat(variables('vdaServerPrefix'), '-', copyIndex())]",
+                  "computerName": "[concat(variables('vdaRDSServerPrefix'), '-', copyIndex())]",
                   "adminUsername": "[parameters('adminUsername')]",
                   "adminPassword": "[parameters('adminPassword')]"
                 },
@@ -1133,10 +1135,10 @@
                     "name": "osdisk",
                     "osType": "Windows",
                     "image": {
-                      "uri": "[variables('userVdaImageName')]"
+                      "uri": "[variables('userVdaRDSImageName')]"
                     },
                     "vhd": {
-                      "uri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/vhds/',resourceGroup().name, variables('vdaServerPrefix'), '-', copyIndex(),'-osdisk.vhd')]"
+                      "uri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/vhds/',resourceGroup().name, variables('vdaRDSServerPrefix'), '-', copyIndex(),'-osdisk.vhd')]"
                     },
                     "caching": "ReadWrite",
                     "createOption": "FromImage"
@@ -1145,7 +1147,7 @@
                 "networkProfile": {
                   "networkInterfaces": [
                     {
-                      "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkInterfaces', concat(variables('vdaServerPrefix'), '-nic-', copyIndex()))]"
+                      "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkInterfaces', concat(variables('vdaRDSServerPrefix'), '-nic-', copyIndex()))]"
                     }
                   ]
                 }
@@ -1153,11 +1155,126 @@
               "resources": [
                 {
                   "type": "extensions",
-                  "name": "[concat(variables('vdaServerPrefix'), '-domainjoin-', copyIndex())]",
+                  "name": "[concat(variables('vdaRDSServerPrefix'), '-domainjoin-', copyIndex())]",
                   "apiVersion": "2015-05-01-preview",
                   "location": "[resourceGroup().location]",
                   "dependsOn": [
-                    "[concat('Microsoft.Compute/virtualMachines/',variables('vdaServerPrefix'), '-', copyIndex())]"
+                    "[concat('Microsoft.Compute/virtualMachines/',variables('vdaRDSServerPrefix'), '-', copyIndex())]"
+                  ],
+                  "properties": {
+                    "publisher": "Microsoft.Powershell",
+                    "type": "DSC",
+                    "typeHandlerVersion": "[variables('dscVersion')]",
+                    "settings": {
+                      "modulesUrl": "[variables('vdaJoinConfigurationFile')]",
+                      "sasToken": "[variables('artifactsLocationSasToken')]",
+                      "configurationFunction": "[variables('vdaJoinConfigurationFunction')]",
+                      "Properties": {
+                        "DomainName": "[parameters('domainName')]",
+                        "AdminCreds": {
+                          "UserName": "[parameters('adminUsername')]",
+                          "Password": "PrivateSettingsRef:adminPassword"
+                        },
+                        "Controller": "[variables('ddcServerName')]"
+                      }
+                    },
+                    "protectedSettings": {
+                      "Items": {
+                        "adminPassword": "[parameters('adminPassword')]"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    {
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat('createvdivdas', copyIndex())]",
+      "copy": {
+        "name": "vdaVDILoop",
+        "count": 1
+      },
+      "dependsOn": [
+        "Microsoft.Resources/deployments/updatevnetdns"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": [
+            {
+              "apiVersion": "2015-05-01-preview",
+              "type": "Microsoft.Network/networkInterfaces",
+              "name": "[concat(variables('vdaVDIServerPrefix'),'-nic-', copyIndex())]",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig",
+                    "properties": {
+                      "privateIPAllocationMethod": "Dynamic",
+                      "subnet": {
+                        "id": "[variables('subnet-id')]"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "apiVersion": "2015-05-01-preview",
+              "type": "Microsoft.Compute/virtualMachines",
+              "name": "[concat(variables('vdaVDIServerPrefix'), '-', copyIndex())]",
+              "location": "[resourceGroup().location]",
+              "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vdaVDIServerPrefix'), '-nic-', copyIndex())]"
+              ],
+              "properties": {
+                "hardwareProfile": {
+                  "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                  "computerName": "[concat(variables('vdaVDIServerPrefix'), '-', copyIndex())]",
+                  "adminUsername": "[parameters('adminUsername')]",
+                  "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                  "osDisk": {
+                    "name": "osdisk",
+                    "osType": "Windows",
+                    "image": {
+                      "uri": "[variables('userVdaVDIImageName')]"
+                    },
+                    "vhd": {
+                      "uri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/vhds/',resourceGroup().name, variables('vdaVDIServerPrefix'), '-', copyIndex(),'-osdisk.vhd')]"
+                    },
+                    "caching": "ReadWrite",
+                    "createOption": "FromImage"
+                  }
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkInterfaces', concat(variables('vdaVDIServerPrefix'), '-nic-', copyIndex()))]"
+                    }
+                  ]
+                }
+              },
+              "resources": [
+                {
+                  "type": "extensions",
+                  "name": "[concat(variables('vdaVDIServerPrefix'), '-domainjoin-', copyIndex())]",
+                  "apiVersion": "2015-05-01-preview",
+                  "location": "[resourceGroup().location]",
+                  "dependsOn": [
+                    "[concat('Microsoft.Compute/virtualMachines/',variables('vdaVDIServerPrefix'), '-', copyIndex())]"
                   ],
                   "properties": {
                     "publisher": "Microsoft.Powershell",
