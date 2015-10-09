@@ -20,13 +20,16 @@ After deployment, the components are fully configured and a simple XenDesktop si
 
 # Pre-Requisites
 
-1) These templates make use of sysprepped images which must have the above XenDesktop components fully installed. There are currently three required images which must reside in the 'images' container of the storage account specified by 'vhdStorage':
+1) These templates make use of sysprepped images which must have the above XenDesktop components fully installed. There are currently six required images which must reside in the 'images' container of the storage account specified by 'vhdStorage':
 
 | Image   | Description    |
 |:--- |:---|
-xd-arthur.vhd | Full XenDesktop installation
-xd-arthur-rdsh.vhd | Server VDA installation
-xd-arthur-vdi.vhd | Server VDI installation
+XD-DDC.vhd | Arthur controller Image
+XD-SF.vhd | Danno StoreFront Image
+XD-LIC.vhd | Arthur License Server Image
+XD-DIR.vhd | Arthur Director Image
+XD-VDA.vhd | Server VDA Installation
+XD-VDI.vhd | Server VDI Installation
 
 Click the button below to deploy
 

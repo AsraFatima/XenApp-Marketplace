@@ -139,11 +139,17 @@
 
     "userImageStorageContainerName": "images",
 
-    "userDdcImageVhdName": "xd-arthur.vhd",
+    "userDdcImageVhdName": "XD-DDC.vhd",
     "userDdcImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userDdcImageVhdName'))]",
-    "userVdaRDSImageVhdName": "xd-arthur-rdsh.vhd",
+    "userStorefrontImageVhdName": "XD-SF.vhd",
+    "userStorefrontImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userStorefrontImageVhdName'))]",
+    "userLicenseImageVhdName": "XD-LIC.vhd",
+    "userLicenseImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userLicenseImageVhdName'))]",
+    "userDirectorImageVhdName": "XD-DIR.vhd",
+    "userDirectorImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userDirectorImageVhdName'))]",
+    "userVdaRDSImageVhdName": "XD-VDA.vhd",
     "userVdaRDSImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userVdaRDSImageVhdName'))]",
-    "userVdaVDIImageVhdName": "xd-arthur-vdi.vhd",
+    "userVdaVDIImageVhdName": "XD-VDI.vhd",
     "userVdaVDIImageName": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageStorageContainerName'),'/',variables('userVdaVDIImageVhdName'))]",
 
     "availabilitySetName": "availabilitySet",
@@ -435,8 +441,8 @@
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
           "windowsConfiguration": {
-            "provisionVMAgent": "true",
-            "enableAutomaticUpdates": "true"
+            "provisionVMAgent": true,
+            "enableAutomaticUpdates": true
           }
         },
         "storageProfile": {
@@ -569,8 +575,8 @@
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
           "windowsConfiguration": {
-            "provisionVMAgent": "true",
-            "enableAutomaticUpdates": "true"
+            "provisionVMAgent": true,
+            "enableAutomaticUpdates": true
           }
         },
         "storageProfile": {
@@ -688,7 +694,7 @@
             "name": "osdisk",
             "osType": "Windows",
             "image": {
-              "uri": "[variables('userDdcImageName')]"
+              "uri": "[variables('userStorefrontImageName')]"
             },
             "vhd": {
               "uri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/vhds/',resourceGroup().name,'-sf-osdisk.vhd')]"
@@ -807,12 +813,12 @@
           "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
-          "computerName": "sql",
-          "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "computerName": "sql",
           "windowsConfiguration": {
-            "provisionVMAgent": "true",
-            "enableAutomaticUpdates": "true"
+            "provisionVMAgent": true,
+            "enableAutomaticUpdates": true
           }
         },
         "storageProfile": {
@@ -927,7 +933,7 @@
             "name": "osdisk",
             "osType": "Windows",
             "image": {
-              "uri": "[variables('userDdcImageName')]"
+              "uri": "[variables('userLicenseImageName')]"
             },
             "vhd": {
               "uri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/vhds/',resourceGroup().name,'-lic-osdisk.vhd')]"
@@ -1086,7 +1092,8 @@
         "count": 1
       },
       "dependsOn": [
-        "Microsoft.Resources/deployments/updatevnetdns"
+        "Microsoft.Resources/deployments/updatevnetdns",
+        "Microsoft.Compute/virtualMachines/ddc/extensions/domainjoin"
       ],
       "properties": {
         "mode": "Incremental",
@@ -1201,7 +1208,8 @@
         "count": 1
       },
       "dependsOn": [
-        "Microsoft.Resources/deployments/updatevnetdns"
+        "Microsoft.Resources/deployments/updatevnetdns",
+        "Microsoft.Compute/virtualMachines/ddc/extensions/domainjoin"
       ],
       "properties": {
         "mode": "Incremental",
