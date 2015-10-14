@@ -1,0 +1,209 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vhdStorageAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "Storage account to place VHD in"
+      }
+    },
+    "imageUri": {
+      "type": "string",
+      "metadata": {
+        "description": "URI of the user image on which to base the VDA"
+      }
+    },
+    "vdaPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Prefix to use for each unique machine name"
+      }
+    },
+    "vdaCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Number of identical VDAs to create"
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Instance size of the VDA"
+      }
+    },
+    "subnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Id of the subnet the machine shall connect to"
+      }
+    },
+    "domainName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the domain to join"
+      }
+    },
+    "ddcServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Desktop delivery controller with which to register."
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Domain credential username to join machine to domain"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Domain credential password to join machine to domain"
+      }
+    },
+    "artifactsLocationUri": {
+      "type": "string",
+      "metadata": {
+        "description": "Location of scripts and other related assets"
+      }
+    },
+    "artifactsLocationSasToken": {
+      "type": "string",
+      "metadata": {
+        "description": "Token allowing for access of asset location"
+      }
+    },
+    "dscVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of DSC extension to use"
+      }
+    },
+    "configurationFile": {
+      "type": "string",
+      "metadata": {
+        "description": "URI of DSC to use for configuration."
+      }
+    },
+    "configurationFunction": {
+      "type": "string",
+      "metadata": {
+        "description": "Function to call in DSC"
+      }
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat('creating', parameters('vdaPrefix'), copyIndex())]",
+      "copy": {
+        "name": "vdaLoop",
+        "count": "[parameters('vdaCount')]"
+      },
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": [
+            {
+              "apiVersion": "2015-05-01-preview",
+              "type": "Microsoft.Network/networkInterfaces",
+              "name": "[concat(parameters('vdaPrefix'), '-', copyIndex(), '-Nic')]",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig",
+                    "properties": {
+                      "privateIPAllocationMethod": "Dynamic",
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "apiVersion": "2015-05-01-preview",
+              "type": "Microsoft.Compute/virtualMachines",
+              "name": "[concat(parameters('vdaPrefix'), '-', copyIndex())]",
+              "location": "[resourceGroup().location]",
+              "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('vdaPrefix'), '-', copyIndex(), '-Nic')]"
+              ],
+              "properties": {
+                "hardwareProfile": {
+                  "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                  "computerName": "[concat(parameters('vdaPrefix'), '-', copyIndex())]",
+                  "adminUsername": "[parameters('adminUsername')]",
+                  "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                  "osDisk": {
+                    "name": "osdisk",
+                    "osType": "Windows",
+                    "image": {
+                      "uri": "[parameters('imageUri')]"
+                    },
+                    "vhd": {
+                      "uri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',resourceGroup().name, parameters('vdaPrefix'), '-', copyIndex(),'-osdisk.vhd')]"
+                    },
+                    "caching": "ReadWrite",
+                    "createOption": "FromImage"
+                  }
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkInterfaces', concat(parameters('vdaPrefix'), '-', copyIndex(), '-Nic'))]"
+                    }
+                  ]
+                }
+              },
+              "resources": [
+                {
+                  "type": "extensions",
+                  "name": "[concat(parameters('vdaPrefix'), '-', copyIndex(), '-configure')]",
+                  "apiVersion": "2015-05-01-preview",
+                  "location": "[resourceGroup().location]",
+                  "dependsOn": [
+                    "[concat('Microsoft.Compute/virtualMachines/',parameters('vdaPrefix'), '-', copyIndex())]"
+                  ],
+                  "properties": {
+                    "publisher": "Microsoft.Powershell",
+                    "type": "DSC",
+                    "typeHandlerVersion": "[parameters('dscVersion')]",
+                    "settings": {
+                      "modulesUrl": "[parameters('configurationFile')]",
+                      "sasToken": "[parameters('artifactsLocationSasToken')]",
+                      "configurationFunction": "[parameters('configurationFunction')]",
+                      "Properties": {
+                        "DomainName": "[parameters('domainName')]",
+                        "AdminCreds": {
+                          "UserName": "[parameters('adminUsername')]",
+                          "Password": "PrivateSettingsRef:adminPassword"
+                        },
+                        "Controller": "[parameters('ddcServerName')]"
+                      }
+                    },
+                    "protectedSettings": {
+                      "Items": {
+                        "adminPassword": "[parameters('adminPassword')]"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

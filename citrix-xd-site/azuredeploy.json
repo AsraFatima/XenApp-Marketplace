@@ -1,0 +1,925 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+
+  "parameters": {
+
+    "vhdStorage": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Storage Account (must already exist and house vhds currently used in place of gallery images). This has to be a uinique name, up to 24 chars, all lowercase."
+      }
+    },
+
+    "vhdStorageGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Group where storage exists"
+      }
+    },
+
+    "publicDnsName": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique public DNS prefix for the deployment. The fqdn will look something like '<dnsname>.westus.cloudapp.azure.com'. Up to 62 chars, digits or dashes, lowercase, should start with a letter: must conform to '^[a-z][a-z0-9-]{1,61}[a-z0-9]$'."
+      }
+    },
+
+    "windowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter"
+      ],
+      "metadata": {
+        "description": "Windows OS version for the VM, allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      }
+    },
+
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_A2",
+      "allowedValues": [
+        "Standard_A0",
+        "Standard_A1",
+        "Standard_A2",
+        "Standard_A3",
+        "Standard_A4",
+        "Standard_A5",
+        "Standard_A6",
+        "Standard_A7",
+        "Standard_A8"
+      ],
+      "metadata": {
+        "description": "The size of the virtual machines"
+      }
+    },
+
+    "domainName": {
+      "type": "string",
+      "defaultValue": "test.local",
+      "metadata": {
+        "description": "The FQDN of the AD domain"
+      }
+    },
+
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
+      }
+    },
+
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the administrator account of the new VM and the domain"
+      }
+    },
+
+    "siteName": {
+      "type": "string",
+      "defaultValue": "TestSite",
+      "metadata": {
+        "description": "The name of the XenDesktop site"
+      }
+    },
+
+    "fqdn": {
+      "type": "string",
+      "metadata": {
+        "description": "Fully qualified domain name which will be used to connect to resources from outside. Must match certificate deployed to the Nestcaler."
+      }
+    },
+
+    "encodedNetscalerLicense": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Base64 encoding of Netscaler license"
+      }
+    },
+
+    "encodedCertificate": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Base64 encoding of certificate to be installed in Netscaler"
+      }
+    },
+
+    "encodedCertificateKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Base64 encoding of certificate key to be installed in Netscaler"
+      }
+    },
+
+    "encodedAuthorityCertificate1": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Base64 encoding of first authority certificate to be installed in Netscaler"
+      }
+    },
+
+    "encodedAuthorityCertificate2": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Base64 encoding of second authority certificate to be installed in Netscaler"
+      }
+    }
+  },
+
+  "variables": {
+	"artifactsLocation": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
+    "artifactsLocationSasToken": "",
+
+    "userImageContainerName": "images",
+    "dscVersion": "2.6",
+
+    "virtualNetworkName": "VirtualNetwork",
+    "publicIpName": "PublicIp",
+    "loadBalancerName": "LoadBalancer",
+    "vnetAddressRange": "10.0.0.0/16",
+    "subnetName": "Subnet",
+    "subnetId": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName')), '/subnets/', variables('subnetName'))]",
+    "subnetAddressRange": "10.0.0.0/20",
+
+    "creatingLoadBalancerUrl": "[concat(variables('artifactsLocation'), '/', 'creatingLoadBalancer.json')]",
+    "updatingVnetDnsUrl": "[concat(variables('artifactsLocation'), '/', 'updatingVnetDns.json')]",
+
+    "availabilitySetName": "AvailabilitySet",
+    "availabilitySetId": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]",
+
+    "domainControllerSettings": {
+      "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingDomainController.json')]",
+      "imagePublisher": "MicrosoftWindowsServer",
+      "imageOffer": "WindowsServer",
+      "machineName": "XD-DC",
+      "privateIp": "10.0.0.8",
+      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'ADCreate.ps1.zip')]",
+      "configurationFunction": "ADCreate.ps1\\ADCreate"
+    },
+
+    "sqlServerSettings": {
+      "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingSqlServer.json')]",
+      "machineName": "XD-SQL",
+      "privateIp": "10.0.0.14",
+      "imagePublisher": "MicrosoftSQLServer",
+      "imageOffer": "SQL2014-WS2012R2",
+      "imageSKU": "Standard",
+      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'SQLJoin.ps1.zip')]",
+      "configurationFunction": "SQLJoin.ps1\\SQLJoin"
+    },
+
+    "licenseServerSettings": {
+      "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingLicenseServer.json')]",
+      "userImageUri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageContainerName'),'/','XD-LIC.vhd')]",
+      "machineName": "XD-License",
+      "privateIp": "10.0.0.12",
+      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'LicenseJoin.ps1.zip')]",
+      "configurationFunction": "LicenseJoin.ps1\\LicenseJoin"
+    },
+
+    "deliveryControllerSettings": {
+      "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingXenDesktopController.json')]",
+      "userImageUri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageContainerName'),'/','XD-DDC.vhd')]",
+      "machineName": "XD-Controller",
+      "privateIp": "10.0.0.9",
+      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'XDSite.ps1.zip')]",
+      "configurationFunction": "XDSite.ps1\\XDSite"
+    },
+
+    "storefrontSettings": {
+      "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingStorefront.json')]",
+      "userImageUri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageContainerName'),'/','XD-SF.vhd')]",
+      "machineName": "XD-Storefront",
+      "privateIp": "10.0.0.10",
+      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'StorefrontJoin.ps1.zip')]",
+      "configurationFunction": "StorefrontJoin.ps1\\StorefrontJoin",
+      "virtualServerName": "SF",
+      "virtualServerPort": 11443,
+      "gatewayName": "MyNetscaler",
+      "themeUri": "[concat(variables('artifactsLocation'), '/Resources/', 'receivertheme.tar.gz')]"
+    },
+
+    "directorSettings": {
+      "userImageUri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageContainerName'),'/','XD-DIR.vhd')]",
+      "machineName": "XD-Director",
+      "privateIp": "10.0.0.15",
+      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'ConfigureDirector.ps1.zip')]",
+      "configurationFunction": "ConfigureDirector.ps1\\ConfigureDirector"
+    },
+
+    "netscalerSettings": {
+      "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingNetscaler.json')]",
+      "machineName": "XD-Netscaler",
+      "privateIp": "10.0.0.11"
+    },
+
+    "vdaSettings": {
+      "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingVdas.json')]",
+      "userImageUri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageContainerName'),'/','XD-VDA.vhd')]",
+      "vdaPrefix": "XD-VDA",
+      "vdaCount": 1,
+      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'VDAJoin.ps1.zip')]",
+      "configurationFunction": "VDAJoin.ps1\\VDAJoin"
+    },
+
+    "vdiSettings": {
+      "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingVdas.json')]",
+      "userImageUri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageContainerName'),'/','XD-VDI.vhd')]",
+      "vdaPrefix": "XD-VDI",
+      "vdaCount": 1,
+      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'VDAJoin.ps1.zip')]",
+      "configurationFunction": "VDAJoin.ps1\\VDAJoin"
+    }
+  },
+
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIpName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "PublicIp"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('publicDnsName')]"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "2015-05-01-preview",
+      "name": "[variables('availabilitySetName')]",
+      "type": "Microsoft.Compute/availabilitySets",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "AvailabilitySet"
+      },
+      "properties": {
+        "platformFaultDomainCount": 2
+      }
+    },
+
+    {
+      "apiVersion": "2015-05-01-preview",
+      "name": "[variables('virtualNetworkName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "VirtualNetwork"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [ "[variables('vnetAddressRange')]" ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('subnetAddressRange')]"
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "CreatingLoadBalancer",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Network/publicIPAddresses/publicIp",
+        "Microsoft.Network/virtualNetworks/virtualNetwork",
+        "Microsoft.Compute/availabilitySets/availabilitySet"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('creatingLoadBalancerUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "publicIpName": {
+            "value": "[variables('publicIpName')]"
+          },
+          "loadBalancerName": {
+            "value": "[variables('loadBalancerName')]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "UpdatingVnetDns",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingDomainController"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('updatingVnetDnsUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vnetName": {
+            "value": "[variables('virtualNetworkName')]"
+          },
+          "vnetAddressRange": {
+            "value": "[variables('vnetAddressRange')]"
+          },
+          "subnetName": {
+            "value": "[variables('subnetName')]"
+          },
+          "subnetAddressRange": {
+            "value": "[variables('subnetAddressRange')]"
+          },
+          "dnsIp": {
+            "value": "[variables('domainControllerSettings').privateIp]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "CreatingDomainController",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingLoadBalancer"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('domainControllerSettings').templateUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorage')]"
+          },
+          "windowsOSVersion": {
+            "value": "[parameters('windowsOSVersion')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "machineName": {
+            "value": "[variables('domainControllerSettings').machineName]"
+          },
+          "privateIp": {
+            "value": "[variables('domainControllerSettings').privateIp]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "lbBapId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
+          },
+          "lbInboundId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.dcrdp.value]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "configurationFile": {
+            "value": "[variables('domainControllerSettings').configurationFile]"
+          },
+          "configurationFunction": {
+            "value": "[variables('domainControllerSettings').configurationFunction]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "CreatingXenDesktopController",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingSqlServer"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deliveryControllerSettings').templateUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorage')]"
+          },
+          "imageUri": {
+            "value": "[variables('deliveryControllerSettings').userImageUri]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "machineName": {
+            "value": "[variables('deliveryControllerSettings').machineName]"
+          },
+          "privateIp": {
+            "value": "[variables('deliveryControllerSettings').privateIp]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "lbBapId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
+          },
+          "lbInboundId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.ddcrdp.value]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "siteName": {
+            "value": "[parameters('siteName')]"
+          },
+          "sqlServerName": {
+            "value": "[variables('sqlServerSettings').machineName]"
+          },
+          "licServerName": {
+            "value": "[variables('licenseServerSettings').machineName]"
+          },
+          "configurationFile": {
+            "value": "[variables('deliveryControllerSettings').configurationFile]"
+          },
+          "configurationFunction": {
+            "value": "[variables('deliveryControllerSettings').configurationFunction]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "CreatingSqlServer",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdatingVnetDns"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('sqlServerSettings').templateUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorage')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "machineName": {
+            "value": "[variables('sqlServerSettings').machineName]"
+          },
+          "privateIp": {
+            "value": "[variables('sqlServerSettings').privateIp]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "lbBapId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
+          },
+          "lbInboundId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.sqlrdp.value]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "configurationFile": {
+            "value": "[variables('sqlServerSettings').configurationFile]"
+          },
+          "configurationFunction": {
+            "value": "[variables('sqlServerSettings').configurationFunction]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "CreatingStorefront",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingXenDesktopController"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('storefrontSettings').templateUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorage')]"
+          },
+          "imageUri": {
+            "value": "[variables('storefrontSettings').userImageUri]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "machineName": {
+            "value": "[variables('storefrontSettings').machineName]"
+          },
+          "privateIp": {
+            "value": "[variables('storefrontSettings').privateIp]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "lbBapId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
+          },
+          "lbInboundId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.sfrdp.value]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "encodedNetscalerLicense": {
+            "value": "[parameters('encodedNetscalerLicense')]"
+          },
+          "encodedCertificate": {
+            "value": "[parameters('encodedCertificate')]"
+          },
+          "encodedCertificateKey": {
+            "value": "[parameters('encodedCertificateKey')]"
+          },
+          "encodedAuthorityCertificate1": {
+            "value": "[parameters('encodedAuthorityCertificate1')]"
+          },
+          "encodedAuthorityCertificate2": {
+            "value": "[parameters('encodedAuthorityCertificate2')]"
+          },
+          "netscalerPrivateIp": {
+            "value": "[variables('netscalerSettings').privateIp]"
+          },
+          "domainServerPrivateIp": {
+            "value": "[variables('domainControllerSettings').privateIp]"
+          },
+          "sfServerPrivateIp": {
+            "value": "[variables('storefrontSettings').privateIp]"
+          },
+          "ddcServerPrivateIp": {
+            "value": "[variables('deliveryControllerSettings').privateIp]"
+          },
+          "virtualServerName": {
+            "value": "[variables('storefrontSettings').virtualServerName]"
+          },
+          "virtualServerPort": {
+            "value": "[variables('storefrontSettings').virtualServerPort]"
+          },
+          "gatewayName": {
+            "value": "[variables('storefrontSettings').gatewayName]"
+          },
+          "gatewayFQDN": {
+            "value": "[parameters('fqdn')]"
+          },
+          "siteName": {
+            "value": "[parameters('siteName')]"
+          },
+          "themeUri": {
+            "value": "[variables('storefrontSettings').themeUri]"
+          },
+          "configurationFile": {
+            "value": "[variables('storefrontSettings').configurationFile]"
+          },
+          "configurationFunction": {
+            "value": "[variables('storefrontSettings').configurationFunction]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "CreatingLicenseServer",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdatingVnetDns"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('licenseServerSettings').templateUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorage')]"
+          },
+          "imageUri": {
+            "value": "[variables('licenseServerSettings').userImageUri]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "machineName": {
+            "value": "[variables('licenseServerSettings').machineName]"
+          },
+          "privateIp": {
+            "value": "[variables('licenseServerSettings').privateIp]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "lbBapId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
+          },
+          "lbInboundId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.licrdp.value]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "configurationFile": {
+            "value": "[variables('licenseServerSettings').configurationFile]"
+          },
+          "configurationFunction": {
+            "value": "[variables('licenseServerSettings').configurationFunction]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "CreatingNetscaler",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdatingVnetDns"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('netscalerSettings').templateUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorage')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "machineName": {
+            "value": "[variables('netscalerSettings').machineName]"
+          },
+          "privateIp": {
+            "value": "[variables('netscalerSettings').privateIp]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "lbBapId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
+          },
+          "lbInboundHttpId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.nshttp.value]"
+          },
+          "lbInboundHttpsId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.nshttps.value]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "CreatingVdaMachines",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingXenDesktopController"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vdaSettings').templateUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorage')]"
+          },
+          "imageUri": {
+            "value": "[variables('vdaSettings').userImageUri]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "vdaPrefix": {
+            "value": "[variables('vdaSettings').vdaPrefix]"
+          },
+          "vdaCount": {
+            "value": "[variables('vdaSettings').vdaCount]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "ddcServerName": {
+            "value": "[variables('deliveryControllerSettings').machineName]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "configurationFile": {
+            "value": "[variables('vdaSettings').configurationFile]"
+          },
+          "configurationFunction": {
+            "value": "[variables('vdaSettings').configurationFunction]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "CreatingVdiMachines",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingXenDesktopController"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vdiSettings').templateUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorage')]"
+          },
+          "imageUri": {
+            "value": "[variables('vdiSettings').userImageUri]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "vdaPrefix": {
+            "value": "[variables('vdiSettings').vdaPrefix]"
+          },
+          "vdaCount": {
+            "value": "[variables('vdiSettings').vdaCount]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "ddcServerName": {
+            "value": "[variables('deliveryControllerSettings').machineName]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "configurationFile": {
+            "value": "[variables('vdiSettings').configurationFile]"
+          },
+          "configurationFunction": {
+            "value": "[variables('vdiSettings').configurationFunction]"
+          }
+        }
+      }
+    }
+  ]
+}
