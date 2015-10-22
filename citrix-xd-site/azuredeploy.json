@@ -25,6 +25,19 @@
       }
     },
 
+    "html5Mode": {
+      "type": "string",
+      "defaultValue": "Always",
+      "allowedValues": [
+        "Always",
+        "Fallback",
+        "Off"
+      ],
+      "metadata": {
+        "description": "Determines how HTML5 reciever is activated."
+      }
+    },
+
     "windowsOSVersion": {
       "type": "string",
       "defaultValue": "2012-R2-Datacenter",
@@ -203,7 +216,8 @@
       "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'StorefrontJoin.ps1.zip')]",
       "configurationFunction": "StorefrontJoin.ps1\\StorefrontJoin",
       "gatewayName": "MyNetscaler",
-      "themeUri": "[concat(variables('artifactsLocation'), '/Resources/', 'receivertheme.tar.gz')]"
+      "themeUri": "[concat(variables('artifactsLocation'), '/Resources/', 'receivertheme.tar.gz')]",
+      "html5Mode" : "[parameters('html5Mode')]"
     },
 
     "directorSettings": {
@@ -682,6 +696,9 @@
           "themeUri": {
             "value": "[variables('storefrontSettings').themeUri]"
           },
+          "html5Mode": {
+            "value": "[variables('storefrontSettings').html5Mode]"
+          },
           "configurationFile": {
             "value": "[variables('storefrontSettings').configurationFile]"
           },
@@ -922,6 +939,9 @@
           "ddcServerName": {
             "value": "[variables('deliveryControllerSettings').machineName]"
           },
+          "directorServerName": {
+            "value": "[variables('directorSettings').machineName]"
+          },
           "domainName": {
             "value": "[parameters('domainName')]"
           },
@@ -984,6 +1004,9 @@
           },
           "ddcServerName": {
             "value": "[variables('deliveryControllerSettings').machineName]"
+          },
+          "directorServerName": {
+            "value": "[variables('directorSettings').machineName]"
           },
           "domainName": {
             "value": "[parameters('domainName')]"

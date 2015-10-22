@@ -200,6 +200,18 @@
         "description": "Theme which should be applied to Netscaler UI"
       }
     },
+    "html5Mode": {
+      "type": "string",
+      "defaultValue": "Always",
+      "allowedValues": [
+        "Always",
+        "Fallback",
+        "Off"
+      ],
+      "metadata": {
+        "description": "Determines how HTML5 reciever is activated."
+      }
+    },
     "configurationFile": {
       "type": "string",
       "metadata": {
@@ -346,6 +358,7 @@
                 "SiteName": "[parameters('siteName')]",
                 "GatewayName": "[parameters('gatewayName')]",
                 "ThemeUri": "[parameters('themeUri')]",
+                "HTML5Mode": "[parameters('html5Mode')]",
                 "FQDN": "[parameters('gatewayFQDN')]"
               }
             },

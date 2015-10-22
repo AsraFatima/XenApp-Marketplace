@@ -50,6 +50,12 @@
         "description": "Desktop delivery controller with which to register."
       }
     },
+    "directorServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Server which hosts Citrix director"
+      }
+    },
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -189,7 +195,8 @@
                           "UserName": "[parameters('adminUsername')]",
                           "Password": "PrivateSettingsRef:adminPassword"
                         },
-                        "Controller": "[parameters('ddcServerName')]"
+                        "Controller": "[parameters('ddcServerName')]",
+                        "Director": "[parameters('directorServerName')]"
                       }
                     },
                     "protectedSettings": {
