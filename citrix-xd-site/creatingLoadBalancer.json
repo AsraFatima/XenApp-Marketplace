@@ -13,6 +13,18 @@
       "metadata": {
         "description": "Public IP associated with this deployment"
       }
+    },
+    "virtualServerPort": {
+      "type": "int",
+      "metadata": {
+        "description": "Public port to be associated with Netscaler virtual server"
+      }
+    },
+    "forwardServerPort": {
+      "type": "int",
+      "metadata": {
+        "description": "Public port to be associated with Netscaler virtual server"
+      }
     }
   },
   "variables": {
@@ -93,6 +105,19 @@
               "enableFloatingIP": false
             }
           },
+         
+           {
+            "name": "dirrdp",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 7000,
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          },
 
           {
             "name": "licrdp",
@@ -115,10 +140,11 @@
               },
               "protocol": "tcp",
               "frontendPort": 80,
-              "backendPort": 80,
+              "backendPort": "[parameters('forwardServerPort')]",
               "enableFloatingIP": false
             }
           },
+
           {
             "name": "nshttps",
             "properties": {
@@ -127,7 +153,20 @@
               },
               "protocol": "tcp",
               "frontendPort": 443,
-              "backendPort": 11443,
+              "backendPort": "[parameters('virtualServerPort')]",
+              "enableFloatingIP": false
+            }
+          },
+
+           {
+            "name": "nsui",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 8080,
+              "backendPort": 80,
               "enableFloatingIP": false
             }
           }
@@ -160,6 +199,10 @@
       "type": "string",
       "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/licrdp')]"
     },
+    "dirrdp": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/dirrdp')]"
+    },
     "sfrdp": {
       "type": "string",
       "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/sfrdp')]"
@@ -171,6 +214,10 @@
     "nshttps": {
       "type": "string",
       "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/nshttps')]"
+    },
+    "nsui": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/nsui')]"
     }
   }
 }

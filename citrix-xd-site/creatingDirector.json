@@ -8,6 +8,12 @@
         "description": "Storage account to place VHD in."
       }
     },
+    "imageUri": {
+      "type": "string",
+      "metadata": {
+        "description": "Image used for the license server."
+      }
+    },
     "vmSize": {
       "type": "string",
       "defaultValue": "Standard_A2",
@@ -56,22 +62,16 @@
         "description": "Load balancer address pool."
       }
     },
-    "lbInboundHttpId": {
+    "lbInboundId": {
       "type": "string",
       "metadata": {
         "description": "Inbound rule for this VM."
       }
     },
-    "lbInboundHttpsId": {
+    "domainName": {
       "type": "string",
       "metadata": {
-        "description": "Inbound rule for this VM."
-      }
-    },
-    "lbInboundNsUiId": {
-      "type": "string",
-      "metadata": {
-        "description": "Inbound rule for this VM."
+        "description": "Name of the domain to create."
       }
     },
     "adminUsername": {
@@ -85,15 +85,45 @@
       "metadata": {
         "description": "The password for the administrator account of the new VM and the domain"
       }
+    },
+    "artifactsLocationUri": {
+      "type": "string",
+      "metadata": {
+        "description": "Location of scripts and other related assets"
+      }
+    },
+    "artifactsLocationSasToken": {
+      "type": "string",
+      "metadata": {
+        "description": "Token allowing for access of asset location"
+      }
+    },
+    "dscVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of DSC Virtual Machine Extension to use."
+      }
+    },
+    "deliveryController": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of DSC Virtual Machine Extension to use."
+      }
+    },
+    "configurationFile": {
+      "type": "string",
+      "metadata": {
+        "description": "URI of DSC to use for configuration."
+      }
+    },
+    "configurationFunction": {
+      "type": "string",
+      "metadata": {
+        "description": "Function to call in DSC"
+      }
     }
   },
   "variables": {
-    "imagePublisher": "sharefile",
-    "imageOffer": "netscaler-vpx-bring",
-    "imageSKU": "netscalervpxbyol",
-    "planName": "netscalervpxbyol",
-    "planPublisher": "sharefile",
-    "planProduct": "netscaler-vpx-bring",
     "nicName": "[concat(parameters('machineName'),'-Nic')]",
     "nicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]",
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
@@ -106,7 +136,7 @@
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('nicName')]",
       "tags": {
-        "displayName": "NetscalerNic"
+        "displayName": "DirectorNic"
       },
       "location": "[resourceGroup().location]",
       "properties": {
@@ -126,13 +156,7 @@
               ],
               "loadBalancerInboundNatRules": [
                 {
-                  "id": "[parameters('lbInboundHttpId')]"
-                },
-                {
-                  "id": "[parameters('lbInboundHttpsId')]"
-                },
-                {
-                  "id": "[parameters('lbInboundNsUiId')]"
+                  "id": "[parameters('lbInboundId')]"
                 }
               ]
             }
@@ -146,17 +170,12 @@
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[parameters('machineName')]",
       "tags": {
-        "displayName": "NetscalerVM"
+        "displayName": "DirectorVM"
       },
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[variables('nicId')]"
       ],
-      "plan": {
-        "name": "[variables('planName')]",
-        "publisher": "[variables('planPublisher')]",
-        "product": "[variables('planProduct')]"
-      },
       "properties": {
         "availabilitySet": {
           "id": "[parameters('availabilitySetId')]"
@@ -168,18 +187,17 @@
           "computerName": "[parameters('machineName')]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "linuxConfiguration": {
-            "disablePasswordAuthentication": "false"
+          "windowsConfiguration": {
+            "provisionVMAgent": true,
+            "enableAutomaticUpdates": true
           }
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
-            "sku": "[variables('imageSKU')]",
-            "version": "latest"
-          },
           "osDisk": {
+            "image": {
+              "uri": "[parameters('imageUri')]"
+            },
+            "osType": "Windows",
             "name": "[variables('osDiskName')]",
             "vhd": {
               "uri": "[variables('osDiskUri')]"
@@ -195,7 +213,45 @@
             }
           ]
         }
-      }
+      },
+
+      "resources": [
+        {
+          "type": "extensions",
+          "name": "configure",
+          "tags": {
+            "displayName": "DirectorConfiguration"
+          },
+          "apiVersion": "2015-05-01-preview",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[variables('machineId')]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "[parameters('dscVersion')]",
+            "settings": {
+              "modulesUrl": "[parameters('configurationFile')]",
+              "sasToken": "[parameters('artifactsLocationSasToken')]",
+              "configurationFunction": "[parameters('configurationFunction')]",
+              "Properties": {
+                "AdminCreds": {
+                  "UserName": "[parameters('adminUsername')]",
+                  "Password": "PrivateSettingsRef:AdminPassword"
+                },
+                "DomainName": "[parameters('domainName')]",
+                "DeliveryController": "[parameters('deliveryController')]"
+              }
+            },
+            "protectedSettings": {
+              "Items": {
+                "AdminPassword": "[parameters('adminPassword')]"
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "outputs": {

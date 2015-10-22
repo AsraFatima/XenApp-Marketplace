@@ -96,6 +96,7 @@
 
     "encodedNetscalerLicense": {
       "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "Base64 encoding of Netscaler license"
       }
@@ -103,6 +104,7 @@
 
     "encodedCertificate": {
       "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "Base64 encoding of certificate to be installed in Netscaler"
       }
@@ -110,6 +112,7 @@
 
     "encodedCertificateKey": {
       "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "Base64 encoding of certificate key to be installed in Netscaler"
       }
@@ -117,6 +120,7 @@
 
     "encodedAuthorityCertificate1": {
       "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "Base64 encoding of first authority certificate to be installed in Netscaler"
       }
@@ -124,6 +128,7 @@
 
     "encodedAuthorityCertificate2": {
       "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "Base64 encoding of second authority certificate to be installed in Netscaler"
       }
@@ -197,13 +202,12 @@
       "privateIp": "10.0.0.10",
       "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'StorefrontJoin.ps1.zip')]",
       "configurationFunction": "StorefrontJoin.ps1\\StorefrontJoin",
-      "virtualServerName": "SF",
-      "virtualServerPort": 11443,
       "gatewayName": "MyNetscaler",
       "themeUri": "[concat(variables('artifactsLocation'), '/Resources/', 'receivertheme.tar.gz')]"
     },
 
     "directorSettings": {
+      "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingDirector.json')]",
       "userImageUri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageContainerName'),'/','XD-DIR.vhd')]",
       "machineName": "XD-Director",
       "privateIp": "10.0.0.15",
@@ -213,6 +217,9 @@
 
     "netscalerSettings": {
       "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingNetscaler.json')]",
+      "virtualServerName": "SF",
+      "virtualServerPort": 11443,
+      "forwardServerPort": 11480,
       "machineName": "XD-Netscaler",
       "privateIp": "10.0.0.11"
     },
@@ -231,8 +238,8 @@
       "userImageUri": "[concat('http://',parameters('vhdStorage'),'.blob.core.windows.net/',variables('userImageContainerName'),'/','XD-VDI.vhd')]",
       "vdaPrefix": "XD-VDI",
       "vdaCount": 1,
-      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'VDAJoin.ps1.zip')]",
-      "configurationFunction": "VDAJoin.ps1\\VDAJoin"
+      "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'VDIJoin.ps1.zip')]",
+      "configurationFunction": "VDIJoin.ps1\\VDIJoin"
     }
   },
 
@@ -311,6 +318,12 @@
           },
           "loadBalancerName": {
             "value": "[variables('loadBalancerName')]"
+          },
+          "virtualServerPort": {
+            "value": "[variables('netscalerSettings').virtualServerPort]"
+          },
+          "forwardServerPort": {
+            "value": "[variables('netscalerSettings').forwardServerPort]"
           }
         }
       }
@@ -649,10 +662,13 @@
             "value": "[variables('deliveryControllerSettings').privateIp]"
           },
           "virtualServerName": {
-            "value": "[variables('storefrontSettings').virtualServerName]"
+            "value": "[variables('netscalerSettings').virtualServerName]"
           },
           "virtualServerPort": {
-            "value": "[variables('storefrontSettings').virtualServerPort]"
+            "value": "[variables('netscalerSettings').virtualServerPort]"
+          },
+          "forwardServerPort": {
+            "value": "[variables('netscalerSettings').forwardServerPort]"
           },
           "gatewayName": {
             "value": "[variables('storefrontSettings').gatewayName]"
@@ -671,6 +687,78 @@
           },
           "configurationFunction": {
             "value": "[variables('storefrontSettings').configurationFunction]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "CreatingDirector",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingXenDesktopController"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('directorSettings').templateUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorage')]"
+          },
+          "imageUri": {
+            "value": "[variables('directorSettings').userImageUri]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "machineName": {
+            "value": "[variables('directorSettings').machineName]"
+          },
+          "privateIp": {
+            "value": "[variables('directorSettings').privateIp]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "lbBapId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
+          },
+          "lbInboundId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.dirrdp.value]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "deliveryController": {
+            "value": "[concat(variables('deliveryControllerSettings').machineName, '.', parameters('domainName'))]"
+          },
+          "configurationFile": {
+            "value": "[variables('directorSettings').configurationFile]"
+          },
+          "configurationFunction": {
+            "value": "[variables('directorSettings').configurationFunction]"
           }
         }
       }
@@ -785,6 +873,9 @@
           },
           "lbInboundHttpsId": {
             "value": "[reference('CreatingLoadBalancer').outputs.nshttps.value]"
+          },
+          "lbInboundNsUiId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.nsui.value]"
           },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"

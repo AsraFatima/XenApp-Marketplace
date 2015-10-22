@@ -170,6 +170,12 @@
         "description": "License"
       }
     },
+    "forwardServerPort": {
+      "type": "int",
+      "metadata": {
+        "description": "License"
+      }
+    },
     "gatewayName": {
       "type": "string",
       "metadata": {
@@ -336,6 +342,7 @@
                 "DeliveryController": "[parameters('ddcServerPrivateIp')]",
                 "VirtualServerName": "[parameters('virtualServerName')]",
                 "VirtualServerPort": "[parameters('virtualServerPort')]",
+                "ForwardServerPort": "[parameters('forwardServerPort')]",
                 "SiteName": "[parameters('siteName')]",
                 "GatewayName": "[parameters('gatewayName')]",
                 "ThemeUri": "[parameters('themeUri')]",
