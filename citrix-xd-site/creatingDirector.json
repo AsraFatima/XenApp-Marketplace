@@ -110,6 +110,12 @@
         "description": "Version of DSC Virtual Machine Extension to use."
       }
     },
+    "domainController": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of DSC Virtual Machine Extension to use."
+      }
+    },
     "configurationFile": {
       "type": "string",
       "metadata": {
@@ -241,7 +247,9 @@
                   "Password": "PrivateSettingsRef:AdminPassword"
                 },
                 "DomainName": "[parameters('domainName')]",
-                "DeliveryController": "[parameters('deliveryController')]"
+                "DeliveryController": "[parameters('deliveryController')]",
+                "DomainController": "[parameters('domainController')]",
+                "LicenseServer": "[parameters('machineName')]"
               }
             },
             "protectedSettings": {

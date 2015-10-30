@@ -152,6 +152,8 @@
 	"artifactsLocation": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
     "artifactsLocationSasToken": "",
 
+    "deploymentFQDN": "[concat(parameters('publicDnsName'), '.', resourceGroup().location, '.cloudapp.azure.com')]",
+
     "userImageContainerName": "images",
     "dscVersion": "2.6",
 
@@ -510,6 +512,9 @@
           "sqlServerName": {
             "value": "[variables('sqlServerSettings').machineName]"
           },
+          "dcServerName": {
+            "value": "[concat(variables('domainControllerSettings').machineName, '.', parameters('domainName'))]"
+          },
           "licServerName": {
             "value": "[variables('licenseServerSettings').machineName]"
           },
@@ -673,7 +678,7 @@
             "value": "[variables('storefrontSettings').privateIp]"
           },
           "ddcServerPrivateIp": {
-            "value": "[variables('deliveryControllerSettings').privateIp]"
+            "value": "[concat(variables('deliveryControllerSettings').machineName, '.', parameters('domainName'))]"
           },
           "virtualServerName": {
             "value": "[variables('netscalerSettings').virtualServerName]"
@@ -689,6 +694,9 @@
           },
           "gatewayFQDN": {
             "value": "[parameters('fqdn')]"
+          },
+          "deploymentFQDN": {
+            "value": "[variables('deploymentFQDN')]"
           },
           "siteName": {
             "value": "[parameters('siteName')]"
@@ -770,6 +778,9 @@
           },
           "deliveryController": {
             "value": "[concat(variables('deliveryControllerSettings').machineName, '.', parameters('domainName'))]"
+          },
+          "domainController": {
+            "value": "[variables('domainControllerSettings').machineName]"
           },
           "configurationFile": {
             "value": "[variables('directorSettings').configurationFile]"
@@ -940,7 +951,7 @@
             "value": "[variables('deliveryControllerSettings').machineName]"
           },
           "directorServerName": {
-            "value": "[variables('directorSettings').machineName]"
+            "value": "[concat(variables('directorSettings').machineName, '.', parameters('domainName'))]"
           },
           "domainName": {
             "value": "[parameters('domainName')]"
@@ -1035,5 +1046,11 @@
         }
       }
     }
-  ]
+  ],
+  "outputs": {
+    "deploymentFQDN": {
+      "type": "string",
+      "value": "[variables('deploymentFQDN')]"
+    }
+  }
 }

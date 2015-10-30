@@ -188,6 +188,12 @@
         "description": "License"
       }
     },
+    "deploymentFQDN": {
+      "type": "string",
+      "metadata": {
+        "description": "License"
+      }
+    },
     "siteName": {
       "type": "string",
       "metadata": {
@@ -350,7 +356,7 @@
                 "AuthorityCertificate1": "[parameters('encodedAuthorityCertificate1')]",
                 "AuthorityCertificate2": "[parameters('encodedAuthorityCertificate2')]",
                 "DomainController": "[parameters('domainServerPrivateIp')]",
-                "StorefrontServer": "[parameters('sfServerPrivateIp')]",
+                "StorefrontServer": "[parameters('machineName')]",
                 "DeliveryController": "[parameters('ddcServerPrivateIp')]",
                 "VirtualServerName": "[parameters('virtualServerName')]",
                 "VirtualServerPort": "[parameters('virtualServerPort')]",
@@ -359,7 +365,8 @@
                 "GatewayName": "[parameters('gatewayName')]",
                 "ThemeUri": "[parameters('themeUri')]",
                 "HTML5Mode": "[parameters('html5Mode')]",
-                "FQDN": "[parameters('gatewayFQDN')]"
+                "FQDN": "[parameters('gatewayFQDN')]",
+                "DeploymentFQDN": "[parameters('deploymentFQDN')]"
               }
             },
             "protectedSettings": {

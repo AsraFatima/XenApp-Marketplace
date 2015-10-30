@@ -122,6 +122,12 @@
         "description": "License"
       }
     },
+    "dcServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "License"
+      }
+    },
     "configurationFile": {
       "type": "string",
       "metadata": {
@@ -250,11 +256,13 @@
               "configurationFunction": "[parameters('configurationFunction')]",
               "Properties": {
                 "DomainName": "[parameters('domainName')]",
+                "DomainController": "[parameters('dcServerName')]",
                 "AdminCreds": {
                   "UserName": "[parameters('adminUsername')]",
                   "Password": "PrivateSettingsRef:adminPassword"
                 },
                 "SiteName": "[parameters('siteName')]",
+                "ControllerName": "[parameters('machineName')]",
                 "SQLServer": "[parameters('sqlServerName')]",
                 "LicenseServer": "[parameters('licServerName')]"
               }
