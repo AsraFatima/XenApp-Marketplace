@@ -1,0 +1,346 @@
+﻿{
+    "handler": "Microsoft.Compute.MultiVm",
+    "version": "0.0.1-preview",
+    "parameters": {
+        "basics": [
+            {
+                "name": "adminUsername",
+                "type": "Microsoft.Compute.UserNameTextBox",
+                "label": "Admin User",
+                "toolTip": "Admin username for the virtual machines.",
+                "osPlatform": "Windows",
+                "constraints": {
+                    "required": true
+                }
+            },
+
+            {
+                "name": "adminPassword",
+                "type": "Microsoft.Compute.CredentialsCombo",
+                "label": {
+                    "password": "Password",
+                    "confirmPassword": "Confirm password"
+                },
+                "toolTip": {
+                    "password": "Admin password for the virtual machines."
+                },
+                "constraints": {
+                    "required": true
+                },
+                "osPlatform": "Windows"
+            },
+
+            {
+                "name": "publicDnsName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Public DNS Name",
+                "defaultValue": "",
+                "toolTip": "Unique public DNS prefix for the deployment. The fqdn will look something like '<dnsname>.westus.cloudapp.azure.com'. Up to 62 chars, digits or dashes, lowercase, should start with a letter.",
+                "constraints": {
+                    "required": true,
+                    "regex": "^[a-z][a-z0-9-]{1,61}[a-z0-9]$",
+                    "validationMessage": "Domain DNS names must be between 6 and 62 characters long."
+                }
+
+            }
+        ],
+        "steps": [
+
+            {
+                "name": "infraConfig",
+                "label": "Infrastructure settings",
+                "subLabel": {
+                    "preValidation": "Configure the Infrastructure settings",
+                    "postValidation": "Done"
+                },
+                "bladeTitle": "Infrastructure settings",
+                "elements": [
+                    {
+                        "name": "storageSettings",
+                        "type": "Microsoft.Common.Section",
+                        "label": "Storage Section",
+                        "elements": [
+                            {
+                                "name": "storageType",
+                                "type": "Microsoft.Common.OptionsGroup",
+                                "label": "Disk type",
+                                "defaultValue": "Standard",
+                                "toolTip": "Type of the storage account.",
+                                "constraints": {
+                                    "allowedValues": [
+                                        {
+                                            "label": "Standard",
+                                            "value": "Standard"
+                                        },
+                                        {
+                                            "label": "Premium (SSD)",
+                                            "value": "Premium (SSD)"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "name": "vhdStorage",
+                                "type": "Microsoft.Storage.StorageAccountSelector",
+                                "label": "Storage Account",
+                                "toolTip": "Name of the storage account (must already exist and house vhds currently used in place of gallery images). This has to be a uinique name, up to 24 chars, all lowercase.",
+                                "defaultValue": {
+                                    "name": "storageaccount01",
+                                    "type": "Premium_LRS"
+                                },
+                                "constraints": {
+                                    "allowedTypes": [ ],
+                                    "excludedTypes": [ ]
+                                }
+                            }
+                        ]
+                    },
+
+                    {
+                        "name": "virtualMachineSettings",
+                        "type": "Microsoft.Common.Section",
+                        "label": "Storage Section",
+                        "elements": [
+                            {
+                                "name": "windowsOSVersion",
+                                "type": "Microsoft.Common.DropDown",
+                                "label": "Operating System",
+                                "defaultValue": "Windows Server 2012 Datacenter",
+                                "toolTip": "Windows OS version for domain controller, allowed values: Windows Server 2008 R2 SP1, Windows Server 2012 Datacenter, Windows Server 2012 R2 Datacenter.",
+                                "constraints": {
+                                    "allowedValues": [
+                                        {
+                                            "label": "Windows Server 2008 R2 SP1",
+                                            "value": "2008-R2-SP1"
+                                        },
+                                        {
+                                            "label": "Windows Server 2012 Datacenter",
+                                            "value": "2012-Datacenter"
+                                        },
+                                        {
+                                            "label": "Windows Server 2012 R2 Datacenter",
+                                            "value": "2012-R2-Datacenter"
+                                        }
+                                    ]
+                                }
+                            },
+
+                            {
+                                "name": "vmSize",
+                                "type": "Microsoft.Compute.SizeSelector",
+                                "label": "Size",
+                                "toolTip": "Size used for all VMs in the deployment.",
+                                "recommendedSizes": [
+                                    "Standard_A3",
+                                    "Standard_A4",
+                                    "Standard_D12",
+                                    "Standard_D13",
+                                    "Standard_D14",
+                                    "Standard_G2",
+                                    "Standard_G3",
+                                    "Standard_G4",
+                                    "Standard_G5" 
+                                ],
+                                "constraints": {
+                                    "allowedSizes": [ 
+                                        "Standard_A3",
+                                        "Standard_A4",
+                                        "Standard_D12",
+                                        "Standard_D13",
+                                        "Standard_D14",
+                                        "Standard_G2",
+                                        "Standard_G3",
+                                        "Standard_G4",
+                                        "Standard_G5" 
+                                    ]
+                                },
+                                "osPlatform": "Windows",
+                                "imageReference": {
+                                    "publisher": "MicrosoftWindowsServer",
+                                    "offer": "WindowsServer",
+                                    "sku": "2012‐R2‐Datacenter"
+                                },
+                                "count": 9
+                            }
+                        ]
+                    },
+
+                    {
+                        "name": "domainSettings",
+                        "type": "Microsoft.Common.Section",
+                        "label": "Storage Section",
+                        "elements": [
+                           
+                            {
+                                "name": "domainName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Domain Name",
+                                "defaultValue": "test.local",
+                                "toolTip": "The name of the new Active Directory domain.",
+                                "constraints": {
+                                    "required": true
+                                }
+                            }
+
+                        ]
+                    }
+                ]
+
+            },
+
+            {
+                "name": "xdConfig",
+                "label": "XenApp Config",
+                "subLabel": {
+                    "preValidation": "Configure XenApp Settings",
+                    "postValidation": "Done"
+                },
+                "bladeTitle": "XenApp settings",
+                "elements": [
+                    {
+                        "name": "xenAppSettings",
+                        "type": "Microsoft.Common.Section",
+                        "label": "Storage Section",
+                        "elements": [
+
+                            {
+                                "name": "siteName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "XenApp site name",
+                                "defaultValue": "TestSite",
+                                "toolTip": "Name of the new XenApp site to be created",
+                                "constraints": {
+                                    "required": true,
+                                    "validationMessage": "Enter a Valid Domain Name"
+
+                                }
+                            },
+
+                            {
+                                "name": "html5Mode",
+                                "type": "Microsoft.Common.OptionsGroup",
+                                "label": "HTML5 receiver mode",
+                                "defaultValue": "Always",
+                                "toolTip": "Specifies when HTML5 receiver is used by clients.",
+                                "constraints": {
+                                    "allowedValues": [
+                                        {
+                                            "label": "Always",
+                                            "value": "Always"
+                                        },
+                                        {
+                                            "label": "Fallback",
+                                            "value": "Fallback"
+                                        },
+                                        {
+                                            "label": "Off",
+                                            "value": "Off"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+
+            {
+                "name": "netscalerConfig",
+                "label": "Netscaler Settings",
+                "subLabel": {
+                    "preValidation": "Configure the Netscaler Settings",
+                    "postValidation": "Done"
+                },
+                "bladeTitle": "Netscaler settings",
+                "elements": [
+                    {
+                        "name": "netscalerSettings",
+                        "type": "Microsoft.Common.Section",
+                        "label": "Storage Section",
+                        "elements": [
+
+                            {
+                                "name": "fqdn",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Netscaler Domain",
+                                "defaultValue": "",
+                                "toolTip": "Domain name which will be used to connect to resources from outside. Must match certificate deployed to the Nestcaler.",
+                                "constraints": {
+                                    "required": true,
+                                    "validationMessage": "Enter a Valid Domain Name"
+
+                                }
+
+                            },
+
+                            {
+                                "name": "encodedLicense",
+                                "type": "Microsoft.Common.FileUpload",
+                                "label": "Netscaler License",
+                                "toolTip": "Netscaler VPX license.",
+                                "constraints": {
+                                    "required": true,
+                                    "accept": "*.lic"
+                                },
+                                "options": {
+                                    "multiple": false,
+                                    "uploadMode": "file",
+                                    "openMode": "binary"
+                                }
+                            },
+
+                            {
+                                "name": "encodedCertificate",
+                                "type": "Microsoft.Common.FileUpload",
+                                "label": "Netscaler Certificate",
+                                "toolTip": "Full certificate chain in PEM format to be installed in the Netscaler instance.",
+                                "constraints": {
+                                    "required": true,
+                                    "accept": "*.pem"
+                                },
+                                "options": {
+                                    "multiple": false,
+                                    "uploadMode": "file",
+                                    "openMode": "binary"
+                                }
+                            },
+
+                            {
+                                "name": "certificatePassphrase",
+                                "type": "Microsoft.Compute.CredentialsCombo",
+                                "label": {
+                                    "password": "Passphrase",
+                                    "confirmPassword": "Confirm passphrase"
+                                },
+                                "toolTip": {
+                                    "password": "Optional passphrase, to be specified if the PEM is passphrase protected."
+                                },
+                                "constraints": {
+                                    "required": true
+                                },
+                                "osPlatform": "Windows"
+                            }
+                        ]
+                    }
+                ]
+            }
+
+        ],
+
+        "outputs": {
+            "adminUsername": "[basics('adminUsername')]",
+            "adminPassword": "[basics('adminPassword').password]",
+            "publicDnsName": "[basics('publicDnsName')]",
+            "vhdStorage": "[steps('infraConfig').storageSettings.vhdStorage.name]",
+            "vmSize": "[steps('infraConfig').virtualMachineSettings.vmSize]",
+            "windowsOSVersion": "[steps('infraConfig').virtualMachineSettings.windowsOSVersion]",
+            "domainName": "[steps('infraConfig').domainSettings.domainName]",
+            "html5Mode": "[steps('xdConfig').xenAppSettings.html5Mode]",
+            "siteName": "[steps('xdConfig').xenAppSettings.siteName]",
+            "fqdn": "[steps('netscalerConfig').netscalerSettings.fqdn]",
+            "encodedNetscalerLicense": "[steps('netscalerConfig').netscalerSettings.encodedLicense]",
+            "encodedCertificate": "[steps('netscalerConfig').netscalerSettings.encodedCertificate]",
+            "encodedCertificatePassword": "[steps('netscalerConfig').netscalerSettings.certificatePassphrase]"
+        }
+    }
+}
