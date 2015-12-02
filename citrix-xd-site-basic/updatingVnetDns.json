@@ -1,0 +1,65 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of virtual network."
+      }
+    },
+    "vnetAddressRange": {
+      "type": "string",
+      "metadata": {
+        "description": "Address range of the entire virtual network."
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of subnet within virtual network"
+      }
+    },
+    "subnetAddressRange": {
+      "type": "string",
+      "metadata": {
+        "description": "Address range of the given subnet."
+      }
+    },
+    "dnsIp": {
+      "type": "string",
+      "metadata": {
+        "description": "IP of DNS server to use for virtual network."
+      }
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "name": "virtualNetwork",
+      "type": "Microsoft.Network/virtualNetworks",
+      "tags": {
+        "displayName": "VirtualNetwork"
+      },
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('vnetAddressRange')]"
+          ]
+        },
+        "dhcpOptions": {
+          "dnsServers": [ "[parameters('dnsIp')]" ]
+        },
+        "subnets": [
+          {
+            "name": "[parameters('subnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('subnetAddressRange')]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

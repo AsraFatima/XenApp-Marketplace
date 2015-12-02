@@ -1,0 +1,247 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "publicIpName": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP associated with this deployment"
+      }
+    },
+    "publicIpGroup": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().name]",
+      "metadata": {
+        "description": "Resource group of the public IP"
+      }
+    },
+    "loadBalancerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP associated with this deployment"
+      }
+    },
+    "virtualServerPort": {
+      "type": "int",
+      "metadata": {
+        "description": "Public port to be associated with Netscaler virtual server"
+      }
+    },
+    "forwardServerPort": {
+      "type": "int",
+      "metadata": {
+        "description": "Public port to be associated with Netscaler virtual server"
+      }
+    }
+  },
+  "variables": {
+
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "name": "[parameters('loadBalancerName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "LoadBalancer"
+      },
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "LBFE",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId(parameters('publicIpGroup'),'Microsoft.Network/publicIPAddresses', parameters('publicIpName'))]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "LBBAP"
+          }
+        ],
+        "inboundNatRules": [
+          {
+            "name": "ddcrdp",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 1935,
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          },
+          {
+            "name": "dcrdp",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 49221,
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          },
+          {
+            "name": "sqlrdp",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 9174,
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          },
+
+          {
+            "name": "sfrdp",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 8000,
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          },
+
+          {
+            "name": "dirrdp",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 7000,
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          },
+
+          {
+            "name": "licrdp",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 8001,
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          },
+
+          {
+            "name": "nshttp",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 80,
+              "backendPort": "[parameters('forwardServerPort')]",
+              "enableFloatingIP": false
+            }
+          },
+
+          {
+            "name": "nshttps",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 443,
+              "backendPort": "[parameters('virtualServerPort')]",
+              "enableFloatingIP": false
+            }
+          },
+
+          {
+            "name": "nsui",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 8080,
+              "backendPort": 80,
+              "enableFloatingIP": false
+            }
+          },
+
+          {
+            "name": "nsssh",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": 22,
+              "backendPort": 22,
+              "enableFloatingIP": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "lbfeId": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+    },
+    "lbbapId": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/backendAddressPools/LBBAP')]"
+    },
+    "sqlrdp": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/sqlrdp')]"
+    },
+    "dcrdp": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/dcrdp')]"
+    },
+    "ddcrdp": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/ddcrdp')]"
+    },
+    "licrdp": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/licrdp')]"
+    },
+    "dirrdp": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/dirrdp')]"
+    },
+    "sfrdp": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/sfrdp')]"
+    },
+    "nshttp": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/nshttp')]"
+    },
+    "nshttps": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/nshttps')]"
+    },
+    "nsui": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/nsui')]"
+    },
+    "nsssh": {
+      "type": "string",
+      "value": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/inboundNatRules/nsssh')]"
+    }
+  }
+}

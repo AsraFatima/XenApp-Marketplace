@@ -1,0 +1,259 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vhdStorageAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "Storage account to place VHD in."
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_A2",
+      "allowedValues": [
+        "Standard_A0",
+        "Standard_A1",
+        "Standard_A2",
+        "Standard_A3",
+        "Standard_A4",
+        "Standard_A5",
+        "Standard_A6",
+        "Standard_A7",
+        "Standard_A8"
+      ],
+      "metadata": {
+        "description": "The size of the virtual machines"
+      }
+    },
+    "machineName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the machine to which will be created."
+      }
+    },
+    "privateIp": {
+      "type": "string",
+      "metadata": {
+        "description": "Static IP to assign to this machine."
+      }
+    },
+    "availabilitySetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Availability set this machine belongs to"
+      }
+    },
+    "subnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Id of the subnet the machine shall connect to."
+      }
+    },
+    "lbBapId": {
+      "type": "string",
+      "metadata": {
+        "description": "Load balancer address pool."
+      }
+    },
+    "lbInboundId": {
+      "type": "string",
+      "metadata": {
+        "description": "Inbound rule for this VM."
+      }
+    },
+    "domainName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the domain to create."
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the administrator account of the new VM and the domain"
+      }
+    },
+    "artifactsLocationUri": {
+      "type": "string",
+      "metadata": {
+        "description": "Location of scripts and other related assets"
+      }
+    },
+    "artifactsLocationSasToken": {
+      "type": "string",
+      "metadata": {
+        "description": "Token allowing for access of asset location"
+      }
+    },
+    "dscVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of DSC Virtual Machine Extension to use."
+      }
+    },
+    "configurationFile": {
+      "type": "string",
+      "metadata": {
+        "description": "URI of DSC to use for configuration."
+      }
+    },
+    "configurationFunction": {
+      "type": "string",
+      "metadata": {
+        "description": "Function to call in DSC"
+      }
+    }
+  },
+  "variables": {
+    "imagePublisher": "MicrosoftSQLServer",
+    "imageOffer": "SQL2014-WS2012R2",
+    "imageSKU": "Standard",
+    "nicName": "[concat(parameters('machineName'),'-Nic')]",
+    "nicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]",
+    "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
+    "osDiskName": "[concat(resourceGroup().name,'-',parameters('machineName'),'-osdisk')]",
+    "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "tags": {
+        "displayName": "SQLServerNic"
+      },
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('privateIp')]",
+              "subnet": {
+                "id": "[parameters('subnetId')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[parameters('lbBapId')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[parameters('lbInboundId')]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('machineName')]",
+      "tags": {
+        "displayName": "SQLServerVM"
+      },
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[variables('nicId')]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[parameters('availabilitySetId')]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('machineName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "windowsConfiguration": {
+            "provisionVMAgent": true,
+            "enableAutomaticUpdates": true
+          }
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('imagePublisher')]",
+            "offer": "[variables('imageOffer')]",
+            "sku": "[variables('imageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[variables('osDiskName')]",
+            "vhd": {
+              "uri": "[variables('osDiskUri')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[variables('nicId')]"
+            }
+          ]
+        }
+      },
+
+      "resources": [
+        {
+          "type": "extensions",
+          "name": "configure",
+          "tags": {
+            "displayName": "SQLServerConfiguration"
+          },
+          "apiVersion": "2015-05-01-preview",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[variables('machineId')]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "[parameters('dscVersion')]",
+            "settings": {
+              "modulesUrl": "[parameters('configurationFile')]",
+              "sasToken": "[parameters('artifactsLocationSasToken')]",
+              "configurationFunction": "[parameters('configurationFunction')]",
+              "Properties": {
+                "AdminCreds": {
+                  "UserName": "[parameters('adminUsername')]",
+                  "Password": "PrivateSettingsRef:AdminPassword"
+                },
+                "DomainName": "[parameters('domainName')]"
+              }
+            },
+            "protectedSettings": {
+              "Items": {
+                "AdminPassword": "[parameters('adminPassword')]"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "machineId": {
+      "type": "string",
+      "value": "[variables('machineId')]"
+    },
+    "nicId": {
+      "type": "string",
+      "value": "[variables('nicId')]"
+    }
+  }
+}
