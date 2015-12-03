@@ -2,23 +2,32 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "vhdStorage": {
-      "value": "ctxtest404"
-    },
-    "vmSize": {
-      "value": "Standard_A4"
+ "vhdStorage": {
+      "value": ""
     },
     "publicDnsName": {
-      "value": "ctxtest404"
+      "value": ""
+    },
+    "html5Mode": {
+      "value": ""
+    },
+    "vmSize": {
+      "value": ""
+    },
+    "domainName": {
+      "value": ""
     },
     "adminUsername": {
-      "value": "citrix"
+      "value": ""
     },
     "adminPassword": {
-      "value": "Citrix123!"
+      "value": ""
+    },
+    "siteName": {
+      "value": ""
     },
     "fqdn": {
-      "value": "alextest.xdtesting.net"
+      "value": ""
     }
   }
 }

@@ -8,12 +8,6 @@
         "description": "Storage account to place VHD in."
       }
     },
-    "imageUri": {
-      "type": "string",
-      "metadata": {
-        "description": "Image used for the license server."
-      }
-    },
     "vmSize": {
       "type": "string",
       "defaultValue": "Standard_A2",
@@ -116,19 +110,7 @@
         "description": "License"
       }
     },
-    "encodedCertificateKey": {
-      "type": "string",
-      "metadata": {
-        "description": "License"
-      }
-    },
-    "encodedAuthorityCertificate1": {
-      "type": "string",
-      "metadata": {
-        "description": "License"
-      }
-    },
-    "encodedAuthorityCertificate2": {
+    "encodedCertificatePassword": {
       "type": "string",
       "metadata": {
         "description": "License"
@@ -232,6 +214,12 @@
     }
   },
   "variables": {
+    "imagePublisher": "sharefile",
+    "imageOffer": "xenapp-storefront-preview",
+    "imageSKU": "xenappstorefront",
+    "planPublisher": "sharefile",
+    "planProduct": "xenapp-storefront-preview",
+    "planName": "xenappstorefront",
     "nicName": "[concat(parameters('machineName'),'-Nic')]",
     "nicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]",
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
@@ -284,6 +272,11 @@
       "dependsOn": [
         "[variables('nicId')]"
       ],
+      "plan": {
+        "name": "[variables('planName')]",
+        "publisher": "[variables('planPublisher')]",
+        "product": "[variables('planProduct')]"
+      },
       "properties": {
         "availabilitySet": {
           "id": "[parameters('availabilitySetId')]"
@@ -301,11 +294,13 @@
           }
         },
         "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('imagePublisher')]",
+            "offer": "[variables('imageOffer')]",
+            "sku": "[variables('imageSKU')]",
+            "version": "latest"
+          },
           "osDisk": {
-            "image": {
-              "uri": "[parameters('imageUri')]"
-            },
-            "osType": "Windows",
             "name": "[variables('osDiskName')]",
             "vhd": {
               "uri": "[variables('osDiskUri')]"
@@ -352,9 +347,10 @@
                 "NetscalerIP": "[parameters('netscalerPrivateIp')]",
                 "License": "[parameters('encodedNetscalerLicense')]",
                 "Certificate": "[parameters('encodedCertificate')]",
-                "CertificateKey": "[parameters('encodedCertificateKey')]",
-                "AuthorityCertificate1": "[parameters('encodedAuthorityCertificate1')]",
-                "AuthorityCertificate2": "[parameters('encodedAuthorityCertificate2')]",
+                "CertificatePassword": {
+                  "UserName": "CertificatePassword",
+                  "Password": "PrivateSettingsRef:certificatePassword"
+                },
                 "DomainController": "[parameters('domainServerPrivateIp')]",
                 "StorefrontServer": "[parameters('machineName')]",
                 "DeliveryController": "[parameters('ddcServerPrivateIp')]",
@@ -371,7 +367,8 @@
             },
             "protectedSettings": {
               "Items": {
-                "AdminPassword": "[parameters('adminPassword')]"
+                "AdminPassword": "[parameters('adminPassword')]",
+                "CertificatePassword": "[parameters('encodedCertificatePassword')]"
               }
             }
           }
@@ -379,14 +376,14 @@
       ]
     }
   ],
-  "outputs": {
-    "machineId": {
-      "type": "string",
-      "value": "[variables('machineId')]"
-    },
-    "nicId": {
-      "type": "string",
-      "value": "[variables('nicId')]"
+      "outputs": {
+        "machineId": {
+          "type": "string",
+          "value": "[variables('machineId')]"
+        },
+        "nicId": {
+          "type": "string",
+          "value": "[variables('nicId')]"
+        }
+      }
     }
-  }
-}

@@ -8,12 +8,6 @@
         "description": "Storage account to place VHD in."
       }
     },
-    "imageUri": {
-      "type": "string",
-      "metadata": {
-        "description": "Image used for the license server."
-      }
-    },
     "vmSize": {
       "type": "string",
       "defaultValue": "Standard_A2",
@@ -130,6 +124,12 @@
     }
   },
   "variables": {
+    "imagePublisher": "sharefile",
+    "imageOffer": "xenapp-director-preview",
+    "imageSKU": "xenappdirector",
+    "planPublisher": "sharefile",
+    "planProduct": "xenapp-director-preview",
+    "planName": "xenappdirector",
     "nicName": "[concat(parameters('machineName'),'-Nic')]",
     "nicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]",
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
@@ -182,6 +182,11 @@
       "dependsOn": [
         "[variables('nicId')]"
       ],
+      "plan": {
+        "name": "[variables('planName')]",
+        "publisher": "[variables('planPublisher')]",
+        "product": "[variables('planProduct')]"
+      },
       "properties": {
         "availabilitySet": {
           "id": "[parameters('availabilitySetId')]"
@@ -199,11 +204,13 @@
           }
         },
         "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('imagePublisher')]",
+            "offer": "[variables('imageOffer')]",
+            "sku": "[variables('imageSKU')]",
+            "version": "latest"
+          },
           "osDisk": {
-            "image": {
-              "uri": "[parameters('imageUri')]"
-            },
-            "osType": "Windows",
             "name": "[variables('osDiskName')]",
             "vhd": {
               "uri": "[variables('osDiskUri')]"

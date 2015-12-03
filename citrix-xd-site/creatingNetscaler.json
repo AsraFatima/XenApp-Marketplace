@@ -74,6 +74,12 @@
         "description": "Inbound rule for this VM."
       }
     },
+    "lbInboundNsSshId": {
+      "type": "string",
+      "metadata": {
+        "description": "Inbound rule for this VM."
+      }
+    },
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -133,6 +139,9 @@
                 },
                 {
                   "id": "[parameters('lbInboundNsUiId')]"
+                },
+                {
+                  "id": "[parameters('lbInboundNsSshId')]"
                 }
               ]
             }
