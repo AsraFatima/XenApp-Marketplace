@@ -442,7 +442,8 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2015-01-01",
       "dependsOn": [
-        "Microsoft.Resources/deployments/CreatingLoadBalancer"
+        "Microsoft.Resources/deployments/CreatingLoadBalancer",
+        "Microsoft.Resources/deployments/CreatingStorageAccount"
       ],
       "properties": {
         "mode": "Incremental",
