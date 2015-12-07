@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
 
@@ -161,11 +161,19 @@
       "metadata": {
         "description": "Base64 encoding of certificate key to be installed in Netscaler"
       }
+    },
+
+    "artifactsBaseUrl": {
+      "type": "string",
+      "metadata": {
+        "artifactsBaseUrl": ""
+      },
+      "defaultValue": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site"
     }
   },
 
   "variables": {
-    "artifactsLocation": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site",
+    "artifactsLocation": "[parameters('artifactsBaseUrl')]",
     "artifactsLocationSasToken": "",
 
     "deploymentFQDN": "[concat(parameters('publicDnsName'), '.', resourceGroup().location, '.cloudapp.azure.com')]",
@@ -512,7 +520,8 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2015-01-01",
       "dependsOn": [
-        "Microsoft.Resources/deployments/CreatingSqlServer"
+        "Microsoft.Resources/deployments/CreatingSqlServer",
+        "Microsoft.Resources/deployments/CreatingLicenseServer"
       ],
       "properties": {
         "mode": "Incremental",
@@ -1105,3 +1114,4 @@
     }
   }
 }
+
