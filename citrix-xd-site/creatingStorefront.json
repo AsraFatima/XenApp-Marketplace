@@ -62,6 +62,12 @@
         "description": "Inbound rule for this VM."
       }
     },
+    "lbInboundHttpId": {
+      "type": "string",
+      "metadata": {
+        "description": "Inbound rule for this VM."
+      }
+    },
     "domainName": {
       "type": "string",
       "metadata": {
@@ -71,7 +77,7 @@
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
+        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator"
       }
     },
     "adminPassword": {
@@ -104,16 +110,21 @@
         "description": "License"
       }
     },
-    "encodedCertificate": {
+    "emailAddress": {
       "type": "string",
       "metadata": {
         "description": "License"
       }
     },
-    "encodedCertificatePassword": {
+    "acmeServer": {
       "type": "string",
+      "defaultValue": "https://acme-staging.api.letsencrypt.org/",
+      "allowedValues": [
+        "https://acme-staging.api.letsencrypt.org/",
+        "https://acme-v01.api.letsencrypt.org/"
+      ],
       "metadata": {
-        "description": "License"
+        "description": "Let's Encrypt server to use for issuing certificates (production or staging)."
       }
     },
     "netscalerPrivateIp": {
@@ -253,6 +264,9 @@
               "loadBalancerInboundNatRules": [
                 {
                   "id": "[parameters('lbInboundId')]"
+                },
+                {
+                  "id": "[parameters('lbInboundHttpId')]"
                 }
               ]
             }
@@ -346,10 +360,9 @@
                 },
                 "NetscalerIP": "[parameters('netscalerPrivateIp')]",
                 "License": "[parameters('encodedNetscalerLicense')]",
-                "Certificate": "[parameters('encodedCertificate')]",
                 "CertificatePassword": {
                   "UserName": "CertificatePassword",
-                  "Password": "PrivateSettingsRef:certificatePassword"
+                  "Password": "PrivateSettingsRef:adminPassword"
                 },
                 "DomainController": "[parameters('domainServerPrivateIp')]",
                 "StorefrontServer": "[parameters('machineName')]",
@@ -361,14 +374,15 @@
                 "GatewayName": "[parameters('gatewayName')]",
                 "ThemeUri": "[parameters('themeUri')]",
                 "HTML5Mode": "[parameters('html5Mode')]",
-                "FQDN": "[parameters('gatewayFQDN')]",
-                "DeploymentFQDN": "[parameters('deploymentFQDN')]"
+                "GatewayFQDN": "[parameters('gatewayFQDN')]",
+                "DeploymentFQDN": "[parameters('deploymentFQDN')]",
+                "EmailAddress": "[parameters('emailAddress')]",
+                "ACMEServer": "[parameters('acmeServer')]"
               }
             },
             "protectedSettings": {
               "Items": {
-                "AdminPassword": "[parameters('adminPassword')]",
-                "CertificatePassword": "[parameters('encodedCertificatePassword')]"
+                "AdminPassword": "[parameters('adminPassword')]"
               }
             }
           }

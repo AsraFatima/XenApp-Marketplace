@@ -73,7 +73,7 @@
     },
     "html5Mode": {
       "type": "string",
-      "defaultValue": "Off",
+      "defaultValue": "Fallback",
       "allowedValues": [
         "Always",
         "Fallback",
@@ -104,7 +104,7 @@
 
     "domainName": {
       "type": "string",
-      "defaultValue": "test.local",
+      "defaultValue": "xenapp.local",
       "metadata": {
         "description": "The FQDN of the AD domain"
       }
@@ -113,7 +113,7 @@
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
+        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator"
       }
     },
 
@@ -126,16 +126,9 @@
 
     "siteName": {
       "type": "string",
-      "defaultValue": "TestSite",
+      "defaultValue": "XenAppOnAzure",
       "metadata": {
-        "description": "The name of the XenDesktop site"
-      }
-    },
-
-    "fqdn": {
-      "type": "string",
-      "metadata": {
-        "description": "Fully qualified domain name which will be used to connect to resources from outside. Must match certificate deployed to the Nestcaler."
+        "description": "The name of the XenApp site"
       }
     },
 
@@ -147,19 +140,23 @@
       }
     },
 
-    "encodedCertificate": {
+    "emailAddress": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Base64 encoding of certificate to be installed in Netscaler"
+        "description": "Email address used for domain registration and deployment completion notification"
       }
     },
 
-    "encodedCertificatePassword": {
-      "type": "securestring",
-      "defaultValue": "",
+    "acmeServer": {
+      "type": "string",
+      "defaultValue": "https://acme-staging.api.letsencrypt.org/",
+      "allowedValues": [
+        "https://acme-staging.api.letsencrypt.org/",
+        "https://acme-v01.api.letsencrypt.org/"
+      ],
       "metadata": {
-        "description": "Base64 encoding of certificate key to be installed in Netscaler"
+        "description": "Let's Encrypt server to use for issuing certificates (production or staging)."
       }
     },
 
@@ -177,6 +174,7 @@
     "artifactsLocationSasToken": "",
 
     "deploymentFQDN": "[concat(parameters('publicDnsName'), '.', resourceGroup().location, '.cloudapp.azure.com')]",
+    "gatewayFQDN": "[concat(parameters('publicDnsName'), '-', resourceGroup().location, '.xenapponazure.com')]",
 
     "userImageContainerName": "images",
     "dscVersion": "2.8",
@@ -200,7 +198,7 @@
       "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingDomainController.json')]",
       "imagePublisher": "MicrosoftWindowsServer",
       "imageOffer": "WindowsServer",
-      "windowsOSVersion" : "2012-R2-Datacenter",
+      "windowsOSVersion": "2012-R2-Datacenter",
       "machineName": "XD-DC",
       "privateIp": "10.0.0.8",
       "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'ADCreate.ps1.zip')]",
@@ -242,7 +240,7 @@
       "configurationFunction": "StorefrontJoin.ps1\\StorefrontJoin",
       "gatewayName": "MyNetscaler",
       "themeUri": "[concat(variables('artifactsLocation'), '/Resources/', 'receivertheme.tar.gz')]",
-      "html5Mode" : "[parameters('html5Mode')]"
+      "html5Mode": "[parameters('html5Mode')]"
     },
 
     "directorSettings": {
@@ -257,7 +255,7 @@
       "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingNetscaler.json')]",
       "virtualServerName": "SF",
       "virtualServerPort": 11443,
-      "forwardServerPort": 11480,
+      "forwardServerPort": 80,
       "machineName": "XD-Netscaler",
       "privateIp": "10.0.0.11"
     },
@@ -699,6 +697,9 @@
           "lbInboundId": {
             "value": "[reference('CreatingLoadBalancer').outputs.sfrdp.value]"
           },
+          "lbInboundHttpId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.nshttp.value]"
+          },
           "domainName": {
             "value": "[parameters('domainName')]"
           },
@@ -720,11 +721,11 @@
           "encodedNetscalerLicense": {
             "value": "[parameters('encodedNetscalerLicense')]"
           },
-          "encodedCertificate": {
-            "value": "[parameters('encodedCertificate')]"
+          "emailAddress": {
+            "value": "[parameters('emailAddress')]"
           },
-          "encodedCertificatePassword": {
-            "value": "[parameters('encodedCertificatePassword')]"
+          "acmeServer": {
+            "value": "[parameters('acmeServer')]"
           },
           "netscalerPrivateIp": {
             "value": "[variables('netscalerSettings').privateIp]"
@@ -751,7 +752,7 @@
             "value": "[variables('storefrontSettings').gatewayName]"
           },
           "gatewayFQDN": {
-            "value": "[parameters('fqdn')]"
+            "value": "[variables('gatewayFQDN')]"
           },
           "deploymentFQDN": {
             "value": "[variables('deploymentFQDN')]"
@@ -1109,6 +1110,10 @@
     }
   ],
   "outputs": {
+    "netscalerGateway": {
+      "type": "string",
+      "value": "[concat('https://', variables('gatewayFQDN'))]"
+    },
     "deploymentFQDN": {
       "type": "string",
       "value": "[variables('deploymentFQDN')]"

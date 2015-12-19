@@ -5,12 +5,14 @@
     "basics": [
       {
         "name": "adminUsername",
-        "type": "Microsoft.Compute.UserNameTextBox",
-        "label": "Admin User",
-        "toolTip": "Admin username for the virtual machines.",
-        "osPlatform": "Windows",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Administrator username",
+        "toolTip": "Specifies the administrator username for NetScaler, XenApp, and Active Directory.",
+        "defaultValue": "ctxadmin",
         "constraints": {
-          "required": true
+          "required": true,
+          "regex": "^[A-Za-z0-9]{1,9}$",
+          "validationMessage": "Usernames must be alphanumeric and between 1 and 9 characters in length."
         }
       },
 
@@ -22,12 +24,25 @@
           "confirmPassword": "Confirm password"
         },
         "toolTip": {
-          "password": "Admin password for the virtual machines."
+          "password": "Specifies the administrator password for NetScaler, XenApp, and Active Directory."
         },
         "constraints": {
           "required": true
         },
         "osPlatform": "Windows"
+      },
+      
+      {
+        "name": "emailAddress",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Email Address",
+        "defaultValue": "",
+        "toolTip": "Specifies the email used for public certificate registration and email notifications.",
+        "constraints": {
+          "required": true,
+          "regex": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+          "validationMessage": "Must be a valid email address."
+        }
       }
     ],
     "steps": [
@@ -36,28 +51,37 @@
         "name": "infraConfig",
         "label": "Infrastructure settings",
         "subLabel": {
-          "preValidation": "Configure the Infrastructure settings",
+          "preValidation": "Configure infrastructure settings",
           "postValidation": "Done"
         },
         "bladeTitle": "Infrastructure settings",
         "elements": [
+
           {
-            "name": "storageSettings",
+            "name": "domainSettings",
             "type": "Microsoft.Common.Section",
-            "label": "Storage Section",
+            "label": "Domain Settings",
             "elements": [
               {
-                "name": "vhdStorage",
-                "type": "Microsoft.Storage.StorageAccountSelector",
-                "label": "Storage Account",
-                "toolTip": "Name of the storage account (must already exist and house vhds currently used in place of gallery images). This has to be a uinique name, up to 24 chars, all lowercase.",
+                "name": "publicDnsName",
+                "type": "Microsoft.Network.PublicIpAddressCombo",
+                "label": {
+                  "publicIpAddress": "Public IP address for deployment.",
+                  "domainNameLabel": "Domain name label for the deployment."
+                },
+                "toolTip": {
+                  "publicIpAddress": "Specifies the name of the public IP in the resource group.",
+                  "domainNameLabel": "Specifies the global DNS name for the entire deployment through which it can be reached."
+                },
                 "defaultValue": {
-                  "name": "storageaccount01",
-                  "type": "Premium_LRS"
+                  "publicIpAddressName": "publicIp"
+                },
+                "options": {
+                  "hideNone": true,
+                  "hideDomainNameLabel": false
                 },
                 "constraints": {
-                  "allowedTypes": [ ],
-                  "excludedTypes": [ ]
+                  "required": true
                 }
               }
             ]
@@ -72,20 +96,15 @@
                 "name": "vmSize",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
-                "toolTip": "Size used for all VMs in the deployment.",
+                "toolTip": "Specifies the size used for all VMs in the deployment. The number indicates how many virtual machines will be created as a part of template deployment.",
                 "recommendedSizes": [
+                  "Standard_A2",
                   "Standard_A3",
-                  "Standard_A4",
-                  "Standard_D12",
-                  "Standard_D13",
-                  "Standard_D14",
-                  "Standard_G2",
-                  "Standard_G3",
-                  "Standard_G4",
-                  "Standard_G5"
+                  "Standard_A4"
                 ],
                 "constraints": {
                   "allowedSizes": [
+                    "Standard_A2",
                     "Standard_A3",
                     "Standard_A4",
                     "Standard_D12",
@@ -104,185 +123,20 @@
                   "sku": "2012‐R2‐Datacenter"
                 },
                 "count": 9
-              }
-            ]
-          },
+              },
 
-          {
-            "name": "domainSettings",
-            "type": "Microsoft.Common.Section",
-            "label": "Domain Settings",
-            "elements": [
               {
-                "name": "publicDnsName",
-                "type": "Microsoft.Network.PublicIpAddressCombo",
-                "label": {
-                  "publicIpAddress": "Public IP address for deployment.",
-                  "domainNameLabel": "Domain name label for the deployment."
-                },
-                "toolTip": {
-                  "domainNameLabel": "Global DNS name for the entire deployment through which it can be reached."
-                },
+                "name": "vhdStorage",
+                "type": "Microsoft.Storage.StorageAccountSelector",
+                "label": "Storage Account",
+                "toolTip": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase.",
                 "defaultValue": {
-                  "publicIpAddressName": "publicDnsName"
-                },
-                "options": {
-                  "hideNone": true,
-                  "hideDomainNameLabel": false
+                  "type": "Standard_LRS"
                 },
                 "constraints": {
-                  "required": true
+                  "allowedTypes": [ ],
+                  "excludedTypes": [ ]
                 }
-              },
-
-              {
-                "name": "domainName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Active Directory Domain Name",
-                "defaultValue": "test.local",
-                "toolTip": "The name of the new Active Directory domain.",
-                "constraints": {
-                  "required": true
-                }
-              }
-
-            ]
-          }
-        ]
-
-      },
-
-      {
-        "name": "xdConfig",
-        "label": "XenApp Config",
-        "subLabel": {
-          "preValidation": "Configure XenApp Settings",
-          "postValidation": "Done"
-        },
-        "bladeTitle": "XenApp settings",
-        "elements": [
-          {
-            "name": "xenAppSettings",
-            "type": "Microsoft.Common.Section",
-            "label": "Storage Section",
-            "elements": [
-
-              {
-                "name": "siteName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "XenApp site name",
-                "defaultValue": "TestSite",
-                "toolTip": "Name of the new XenApp site to be created",
-                "constraints": {
-                  "required": true,
-                  "validationMessage": "Enter a Valid Domain Name"
-
-                }
-              },
-
-              {
-                "name": "html5Mode",
-                "type": "Microsoft.Common.OptionsGroup",
-                "label": "HTML5 receiver mode",
-                "defaultValue": "Always",
-                "toolTip": "Specifies when HTML5 receiver is used by clients.",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Always",
-                      "value": "Always"
-                    },
-                    {
-                      "label": "Fallback",
-                      "value": "Fallback"
-                    },
-                    {
-                      "label": "Off",
-                      "value": "Off"
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      },
-
-      {
-        "name": "netscalerConfig",
-        "label": "Netscaler Settings",
-        "subLabel": {
-          "preValidation": "Configure the Netscaler Settings",
-          "postValidation": "Done"
-        },
-        "bladeTitle": "Netscaler settings",
-        "elements": [
-          {
-            "name": "netscalerSettings",
-            "type": "Microsoft.Common.Section",
-            "label": "Netscaler Settings",
-            "elements": [
-
-              {
-                "name": "fqdn",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Netscaler Domain",
-                "defaultValue": "",
-                "toolTip": "Domain name which will be used to connect to resources from outside. Must match certificate deployed to the Nestcaler.",
-                "constraints": {
-                  "required": true,
-                  "validationMessage": "Enter a Valid Domain Name"
-
-                }
-
-              },
-
-              {
-                "name": "encodedLicense",
-                "type": "Microsoft.Common.FileUpload",
-                "label": "Netscaler License",
-                "toolTip": "Netscaler VPX license.",
-                "constraints": {
-                  "required": true,
-                  "accept": "*.lic"
-                },
-                "options": {
-                  "multiple": false,
-                  "uploadMode": "file",
-                  "openMode": "binary"
-                }
-              },
-
-              {
-                "name": "encodedCertificate",
-                "type": "Microsoft.Common.FileUpload",
-                "label": "Netscaler Certificate",
-                "toolTip": "Full certificate chain in PEM format to be installed in the Netscaler instance.",
-                "constraints": {
-                  "required": true,
-                  "accept": "*.pem"
-                },
-                "options": {
-                  "multiple": false,
-                  "uploadMode": "file",
-                  "openMode": "binary"
-                }
-              },
-
-              {
-                "name": "certificatePassphrase",
-                "type": "Microsoft.Compute.CredentialsCombo",
-                "label": {
-                  "password": "Passphrase",
-                  "confirmPassword": "Confirm passphrase"
-                },
-                "toolTip": {
-                  "password": "Optional passphrase, to be specified if the PEM is passphrase protected."
-                },
-                "constraints": {
-                  "required": true
-                },
-                "osPlatform": "Windows"
               }
             ]
           }
@@ -292,22 +146,16 @@
     "outputs": {
       "adminUsername": "[basics('adminUsername')]",
       "adminPassword": "[basics('adminPassword').password]",
-      "vhdStorage": "[steps('infraConfig').storageSettings.vhdStorage.name]",
-      "vhdStorageType": "[steps('infraConfig').storageSettings.vhdStorage.type]",
-      "vhdStorageGroup": "[steps('infraConfig').storageSettings.vhdStorage.resourceGroup]",
-      "vhdStorageNewOrExisting": "[steps('infraConfig').storageSettings.vhdStorage.newOrExisting]",
+      "emailAddress": "[basics('emailAddress')]",
+      "vhdStorage": "[steps('infraConfig').virtualMachineSettings.vhdStorage.name]",
+      "vhdStorageType": "[steps('infraConfig').virtualMachineSettings.vhdStorage.type]",
+      "vhdStorageGroup": "[steps('infraConfig').virtualMachineSettings.vhdStorage.resourceGroup]",
+      "vhdStorageNewOrExisting": "[steps('infraConfig').virtualMachineSettings.vhdStorage.newOrExisting]",
       "vmSize": "[steps('infraConfig').virtualMachineSettings.vmSize]",
       "publicDnsName": "[steps('infraConfig').domainSettings.publicDnsName.domainNameLabel]",
       "publicIpGroup": "[steps('infraConfig').domainSettings.publicDnsName.resourceGroup]",
       "publicIpName": "[steps('infraConfig').domainSettings.publicDnsName.name]",
-      "publicIpNewOrExisting": "[steps('infraConfig').domainSettings.publicDnsName.newOrExistingOrNone]",
-      "domainName": "[steps('infraConfig').domainSettings.domainName]",
-      "html5Mode": "[steps('xdConfig').xenAppSettings.html5Mode]",
-      "siteName": "[steps('xdConfig').xenAppSettings.siteName]",
-      "fqdn": "[steps('netscalerConfig').netscalerSettings.fqdn]",
-      "encodedNetscalerLicense": "[steps('netscalerConfig').netscalerSettings.encodedLicense]",
-      "encodedCertificate": "[steps('netscalerConfig').netscalerSettings.encodedCertificate]",
-      "encodedCertificatePassword": "[steps('netscalerConfig').netscalerSettings.certificatePassphrase.password]"
+      "publicIpNewOrExisting": "[steps('infraConfig').domainSettings.publicDnsName.newOrExistingOrNone]"
     }
   }
 }

@@ -132,9 +132,6 @@
               ],
               "loadBalancerInboundNatRules": [
                 {
-                  "id": "[parameters('lbInboundHttpId')]"
-                },
-                {
                   "id": "[parameters('lbInboundHttpsId')]"
                 },
                 {
