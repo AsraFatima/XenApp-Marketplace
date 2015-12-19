@@ -177,7 +177,7 @@
     "gatewayFQDN": "[concat(parameters('publicDnsName'), '-', resourceGroup().location, '.xenapponazure.com')]",
 
     "userImageContainerName": "images",
-    "dscVersion": "2.8",
+    "dscVersion": "2.11",
 
     "virtualNetworkName": "VirtualNetwork",
     "loadBalancerName": "LoadBalancer",
