@@ -236,6 +236,7 @@
       "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingStorefront.json')]",
       "machineName": "XD-Storefront",
       "privateIp": "10.0.0.10",
+      "httpPort": 80,
       "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'StorefrontJoin.ps1.zip')]",
       "configurationFunction": "StorefrontJoin.ps1\\StorefrontJoin",
       "gatewayName": "MyNetscaler",
@@ -255,7 +256,7 @@
       "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingNetscaler.json')]",
       "virtualServerName": "SF",
       "virtualServerPort": 11443,
-      "forwardServerPort": 80,
+      "forwardServerPort": 11480,
       "machineName": "XD-Netscaler",
       "privateIp": "10.0.0.11"
     },
@@ -404,7 +405,7 @@
             "value": "[variables('netscalerSettings').virtualServerPort]"
           },
           "forwardServerPort": {
-            "value": "[variables('netscalerSettings').forwardServerPort]"
+            "value": "[variables('storefrontSettings').httpPort]"
           }
         }
       }
