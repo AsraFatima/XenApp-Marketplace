@@ -43,6 +43,6 @@ Template parameters:
 | adminPassword | Domain and Citrix admin password. |
 | siteName | Name of the XenDesktop site to be created (e.g. 'AzureSite'.) |
 | encodedNetscalerLicense | Base64 encoded Netscaler license file |
-| encodedCertificate | Base64 encoded certificate chain in PEM format to be installed in Netscaler. |
-| encodedCertificatePassword | Optional passphrase used for the certificate. |
+| emailAddress | Email address used for generation of certificates and notifications. |
+| acmeServer | Let's encrypt server to user for certificate generation. |
 
