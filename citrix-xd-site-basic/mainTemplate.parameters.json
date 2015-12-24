@@ -2,31 +2,34 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-   "vhdStorage": {
-      "value": ""
-    },
-    "publicDnsName": {
-      "value": ""
-    },
-    "html5Mode": {
-      "value": ""
-    },
-    "vmSize": {
-      "value": ""
-    },
-    "domainName": {
-      "value": ""
-    },
     "adminUsername": {
       "value": ""
     },
     "adminPassword": {
       "value": ""
     },
-    "siteName": {
+    "emailAddress": {
       "value": ""
     },
-    "fqdn": {
+    "vhdStorage": {
+      "value": ""
+    },
+    "vhdStorageType": {
+      "value": ""
+    },
+    "vhdStorageGroup": {
+      "value": ""
+    },
+    "vhdStorageNewOrExisting": {
+      "value": ""
+    },
+    "vmSize": {
+      "value": ""
+    },
+    "publicDnsName": {
+      "value": ""
+    },
+    "encodedNetscalerLicense": {
       "value": ""
     }
   }

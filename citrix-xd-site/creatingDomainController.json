@@ -68,8 +68,8 @@
         "description": "Load balancer address pool."
       }
     },
-    "lbInboundId": {
-      "type": "string",
+    "lbInboundRules": {
+      "type": "array",
       "metadata": {
         "description": "Inbound rule for this VM."
       }
@@ -158,11 +158,7 @@
                   "id": "[parameters('lbBapId')]"
                 }
               ],
-              "loadBalancerInboundNatRules": [
-                {
-                  "id": "[parameters('lbInboundId')]"
-                }
-              ]
+              "loadBalancerInboundNatRules": "[parameters('lbInboundRules')]"
             }
           }
         ]

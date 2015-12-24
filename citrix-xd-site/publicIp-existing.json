@@ -16,7 +16,7 @@
     }
   },
   "variables": {
-    "publicIpId": "[resourceId(parameters('publicIpName'),concat('Microsoft.Network','/','publicIPAddresses'),parameters('publicIpName'))]"
+    "publicIpId": "[resourceId(parameters('publicIpGroup'),concat('Microsoft.Network','/','publicIPAddresses'),parameters('publicIpName'))]"
   },
   "resources": [],
   "outputs": {

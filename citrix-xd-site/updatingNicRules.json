@@ -1,0 +1,61 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "nicName": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP associated with this deployment"
+      }
+    },
+    "lbBapId": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP associated with this deployment"
+      }
+    },
+    "privateIp": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP associated with this deployment"
+      }
+    },
+    "subnetId": {
+      "type": "string",
+    },
+    "rules": {
+      "type": "array",
+      "metadata": {
+        "description": "Public IP associated with this deployment"
+      }
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[parameters('nicName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('privateIp')]",
+              "subnet": {
+                "id": "[parameters('subnetId')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[parameters('lbBapId')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": "[parameters('rules')]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

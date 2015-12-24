@@ -8,6 +8,12 @@
         "description": "Storage account to place VHD in"
       }
     },
+    "imageUri": {
+      "type": "string",
+      "metadata": {
+        "description": "Image used for the license server."
+      }
+    },
     "vdaPrefix": {
       "type": "string",
       "metadata": {
@@ -155,11 +161,6 @@
               "dependsOn": [
                 "[concat('Microsoft.Network/networkInterfaces/', parameters('vdaPrefix'), '-', copyIndex(), '-Nic')]"
               ],
-              "plan": {
-                "name": "[variables('planName')]",
-                "publisher": "[variables('planPublisher')]",
-                "product": "[variables('planProduct')]"
-              },
               "properties": {
                 "hardwareProfile": {
                   "vmSize": "[parameters('vmSize')]"
@@ -170,13 +171,11 @@
                   "adminPassword": "[parameters('adminPassword')]"
                 },
                 "storageProfile": {
-                  "imageReference": {
-                    "publisher": "[variables('imagePublisher')]",
-                    "offer": "[variables('imageOffer')]",
-                    "sku": "[variables('imageSKU')]",
-                    "version": "latest"
-                  },
                   "osDisk": {
+                    "image": {
+                      "uri": "[parameters('imageUri')]"
+                    },
+                    "osType": "Windows",
                     "name": "osdisk",
                     "vhd": {
                       "uri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',resourceGroup().name, parameters('vdaPrefix'), '-', copyIndex(),'-osdisk.vhd')]"

@@ -8,6 +8,12 @@
         "description": "Storage account to place VHD in."
       }
     },
+    "imageUri": {
+      "type": "string",
+      "metadata": {
+        "description": "Image used for the license server."
+      }
+    },
     "vmSize": {
       "type": "string",
       "defaultValue": "Standard_A2",
@@ -56,8 +62,8 @@
         "description": "Load balancer address pool."
       }
     },
-    "lbInboundId": {
-      "type": "string",
+    "lbInboundRules": {
+      "type": "array",
       "metadata": {
         "description": "Inbound rule for this VM."
       }
@@ -71,7 +77,7 @@
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
+        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator"
       }
     },
     "adminPassword": {
@@ -148,11 +154,7 @@
                   "id": "[parameters('lbBapId')]"
                 }
               ],
-              "loadBalancerInboundNatRules": [
-                {
-                  "id": "[parameters('lbInboundId')]"
-                }
-              ]
+              "loadBalancerInboundNatRules": "[parameters('lbInboundRules')]"
             }
           }
         ]
@@ -170,11 +172,6 @@
       "dependsOn": [
         "[variables('nicId')]"
       ],
-      "plan": {
-        "name": "[variables('planName')]",
-        "publisher": "[variables('planPublisher')]",
-        "product": "[variables('planProduct')]"
-      },
       "properties": {
         "availabilitySet": {
           "id": "[parameters('availabilitySetId')]"
@@ -192,13 +189,11 @@
           }
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
-            "sku": "[variables('imageSKU')]",
-            "version": "latest"
-          },
           "osDisk": {
+            "image": {
+              "uri": "[parameters('imageUri')]"
+            },
+            "osType": "Windows",
             "name": "[variables('osDiskName')]",
             "vhd": {
               "uri": "[variables('osDiskUri')]"

@@ -177,10 +177,9 @@
     "gatewayFQDN": "[concat(parameters('publicDnsName'), '-', resourceGroup().location, '.xenapponazure.com')]",
 
     "userImageContainerName": "images",
-    "dscVersion": "2.11",
+    "dscVersion": "2.13",
 
     "virtualNetworkName": "VirtualNetwork",
-    "loadBalancerName": "LoadBalancer",
     "vnetAddressRange": "10.0.0.0/16",
     "subnetName": "Subnet",
     "subnetId": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName')), '/subnets/', variables('subnetName'))]",
@@ -190,9 +189,64 @@
     "creatingStorageAccountUrl": "[concat(variables('artifactsLocation'), '/', 'storageAccount-', parameters('vhdStorageNewOrExisting'), '.json')]",
     "creatingLoadBalancerUrl": "[concat(variables('artifactsLocation'), '/', 'creatingLoadBalancer.json')]",
     "updatingVnetDnsUrl": "[concat(variables('artifactsLocation'), '/', 'updatingVnetDns.json')]",
+    "updatingNicRulesUrl": "[concat(variables('artifactsLocation'), '/', 'updatingNicRules.json')]",
+    "updatingInboundRuleUrl": "[concat(variables('artifactsLocation'), '/', 'updatingInboundRule.json')]",
 
     "availabilitySetName": "AvailabilitySet",
     "availabilitySetId": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]",
+
+    "loadBalancerName": "LoadBalancer",
+    "loadBalancerSettings": {
+      "name": "[variables('loadBalancerName')]",
+      "id": "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
+      "inboundRules": [
+        {
+          "name": "ddcrdp",
+          "frontendPort": 1935,
+          "backendPort": 3389
+        },
+        {
+          "name": "dcrdp",
+          "frontendPort": 49221,
+          "backendPort": 3389
+        },
+        {
+          "name": "sqlrdp",
+          "frontendPort": 9174,
+          "backendPort": 3389
+        },
+        {
+          "name": "sfrdp",
+          "frontendPort": 8000,
+          "backendPort": 3389
+        },
+        {
+          "name": "dirrdp",
+          "frontendPort": 7000,
+          "backendPort": 3389
+        },
+        {
+          "name": "licrdp",
+          "frontendPort": 8001,
+          "backendPort": 3389
+        },
+        {
+          "name": "nshttp",
+          "frontendPort": 80,
+          "backendPort": 80
+        },
+        {
+          "name": "nshttps",
+          "frontendPort": 443,
+          "backendPort": 11443
+        },
+        {
+          "name": "nsssh",
+          "frontendPort": 22,
+          "backendPort": 22
+        }
+      ]
+    },
 
     "domainControllerSettings": {
       "templateUri": "[concat(variables('artifactsLocation'), '/', 'creatingDomainController.json')]",
@@ -202,7 +256,10 @@
       "machineName": "XD-DC",
       "privateIp": "10.0.0.8",
       "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'ADCreate.ps1.zip')]",
-      "configurationFunction": "ADCreate.ps1\\ADCreate"
+      "configurationFunction": "ADCreate.ps1\\ADCreate",
+      "inboundRules": [
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'dcrdp')]" }
+      ]
     },
 
     "sqlServerSettings": {
@@ -213,7 +270,10 @@
       "imageOffer": "SQL2014-WS2012R2",
       "imageSKU": "Standard",
       "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'SQLJoin.ps1.zip')]",
-      "configurationFunction": "SQLJoin.ps1\\SQLJoin"
+      "configurationFunction": "SQLJoin.ps1\\SQLJoin",
+      "inboundRules": [
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'sqlrdp')]" }
+      ]
     },
 
     "licenseServerSettings": {
@@ -221,7 +281,10 @@
       "machineName": "XD-License",
       "privateIp": "10.0.0.12",
       "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'LicenseJoin.ps1.zip')]",
-      "configurationFunction": "LicenseJoin.ps1\\LicenseJoin"
+      "configurationFunction": "LicenseJoin.ps1\\LicenseJoin",
+      "inboundRules": [
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'licrdp')]" }
+      ]
     },
 
     "deliveryControllerSettings": {
@@ -229,7 +292,10 @@
       "machineName": "XD-Controller",
       "privateIp": "10.0.0.9",
       "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'XDSite.ps1.zip')]",
-      "configurationFunction": "XDSite.ps1\\XDSite"
+      "configurationFunction": "XDSite.ps1\\XDSite",
+      "inboundRules": [
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'ddcrdp')]" }
+      ]
     },
 
     "storefrontSettings": {
@@ -241,7 +307,14 @@
       "configurationFunction": "StorefrontJoin.ps1\\StorefrontJoin",
       "gatewayName": "MyNetscaler",
       "themeUri": "[concat(variables('artifactsLocation'), '/Resources/', 'receivertheme.tar.gz')]",
-      "html5Mode": "[parameters('html5Mode')]"
+      "html5Mode": "[parameters('html5Mode')]",
+      "inboundRulesInitial": [
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'sfrdp')]" },
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'nshttp')]" }
+      ],
+      "inboundRulesFinal": [
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'sfrdp')]" }
+      ]
     },
 
     "directorSettings": {
@@ -249,7 +322,10 @@
       "machineName": "XD-Director",
       "privateIp": "10.0.0.15",
       "configurationFile": "[concat(variables('artifactsLocation'), '/DSC/', 'ConfigureDirector.ps1.zip')]",
-      "configurationFunction": "ConfigureDirector.ps1\\ConfigureDirector"
+      "configurationFunction": "ConfigureDirector.ps1\\ConfigureDirector",
+      "inboundRules": [
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'dirrdp')]" }
+      ]
     },
 
     "netscalerSettings": {
@@ -258,7 +334,16 @@
       "virtualServerPort": 11443,
       "forwardServerPort": 11480,
       "machineName": "XD-Netscaler",
-      "privateIp": "10.0.0.11"
+      "privateIp": "10.0.0.11",
+      "inboundRulesInitial": [
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'nshttps')]" },
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'nsssh')]" }
+      ],
+      "inboundRulesFinal": [
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'nshttps')]" },
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'nsssh')]" },
+        { "id": "[concat(variables('loadBalancerSettings').id, '/inboundNatRules/', 'nshttp')]" }
+      ]
     },
 
     "vdaSettings": {
@@ -319,7 +404,7 @@
         ]
       }
     },
-    
+
     {
       "name": "CreatingPublicIp",
       "type": "Microsoft.Resources/deployments",
@@ -399,13 +484,10 @@
             "value": "[parameters('publicIpGroup')]"
           },
           "loadBalancerName": {
-            "value": "[variables('loadBalancerName')]"
+            "value": "[variables('loadBalancerSettings').name]"
           },
-          "virtualServerPort": {
-            "value": "[variables('netscalerSettings').virtualServerPort]"
-          },
-          "forwardServerPort": {
-            "value": "[variables('storefrontSettings').httpPort]"
+          "inboundRules": {
+            "value": "[variables('loadBalancerSettings').inboundRules]"
           }
         }
       }
@@ -483,8 +565,8 @@
           "lbBapId": {
             "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
           },
-          "lbInboundId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.dcrdp.value]"
+          "lbInboundRules": {
+            "value": "[variables('domainControllerSettings').inboundRules]"
           },
           "domainName": {
             "value": "[parameters('domainName')]"
@@ -550,8 +632,8 @@
           "lbBapId": {
             "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
           },
-          "lbInboundId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.ddcrdp.value]"
+          "lbInboundRules": {
+            "value": "[variables('deliveryControllerSettings').inboundRules]"
           },
           "domainName": {
             "value": "[parameters('domainName')]"
@@ -628,8 +710,8 @@
           "lbBapId": {
             "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
           },
-          "lbInboundId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.sqlrdp.value]"
+          "lbInboundRules": {
+            "value": "[variables('sqlServerSettings').inboundRules]"
           },
           "domainName": {
             "value": "[parameters('domainName')]"
@@ -695,11 +777,8 @@
           "lbBapId": {
             "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
           },
-          "lbInboundId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.sfrdp.value]"
-          },
-          "lbInboundHttpId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.nshttp.value]"
+          "lbInboundRules": {
+            "value": "[variables('storefrontSettings').inboundRulesInitial]"
           },
           "domainName": {
             "value": "[parameters('domainName')]"
@@ -812,8 +891,8 @@
           "lbBapId": {
             "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
           },
-          "lbInboundId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.dirrdp.value]"
+          "lbInboundRules": {
+            "value": "[variables('directorSettings').inboundRules]"
           },
           "domainName": {
             "value": "[parameters('domainName')]"
@@ -884,8 +963,8 @@
           "lbBapId": {
             "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
           },
-          "lbInboundId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.licrdp.value]"
+          "lbInboundRules": {
+            "value": "[variables('licenseServerSettings').inboundRules]"
           },
           "domainName": {
             "value": "[parameters('domainName')]"
@@ -950,17 +1029,8 @@
           "lbBapId": {
             "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
           },
-          "lbInboundHttpId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.nshttp.value]"
-          },
-          "lbInboundHttpsId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.nshttps.value]"
-          },
-          "lbInboundNsUiId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.nsui.value]"
-          },
-          "lbInboundNsSshId": {
-            "value": "[reference('CreatingLoadBalancer').outputs.nsssh.value]"
+          "lbInboundRules": {
+            "value": "[variables('netscalerSettings').inboundRulesInitial]"
           },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"
@@ -1105,6 +1175,105 @@
           },
           "configurationFunction": {
             "value": "[variables('vdiSettings').configurationFunction]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "UpdatingInboundRules",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingStorefront"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('updatingInboundRuleUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "loadBalancerName": {
+            "value": "[variables('loadBalancerName')]"
+          },
+          "loadBalancerId": {
+            "value": "[variables('loadBalancerSettings').id]"
+          },
+          "inboundRuleName": {
+            "value": "nshttp"
+          },
+          "frontendPort": {
+            "value": 80
+          },
+          "backendPort": {
+            "value": "[variables('netscalerSettings').forwardServerPort]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "UpdatingStorefrontNic",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdatingInboundRules"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('updatingNicRulesUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nicName": {
+            "value": "[concat(variables('storefrontSettings').machineName,'-Nic')]"
+          },
+          "privateIp": {
+            "value": "[variables('storefrontSettings').privateIp]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "lbBapId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
+          },
+          "rules": {
+            "value": "[variables('storefrontSettings').inboundRulesFinal]"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "UpdatingNetscalerNic",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdatingStorefrontNic"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('updatingNicRulesUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nicName": {
+            "value": "[concat(variables('netscalerSettings').machineName,'-Nic')]"
+          },
+          "privateIp": {
+            "value": "[variables('netscalerSettings').privateIp]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "lbBapId": {
+            "value": "[reference('CreatingLoadBalancer').outputs.lbbapId.value]"
+          },
+          "rules": {
+            "value": "[variables('netscalerSettings').inboundRulesFinal]"
           }
         }
       }
