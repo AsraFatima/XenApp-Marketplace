@@ -160,6 +160,11 @@
       }
     },
 
+	"userImageContainerName": {
+      "type": "string",
+      "defaultValue": "images"
+    },
+	
     "artifactsBaseUrl": {
       "type": "string",
       "metadata": {
@@ -176,7 +181,7 @@
     "deploymentFQDN": "[concat(parameters('publicDnsName'), '.', resourceGroup().location, '.cloudapp.azure.com')]",
     "gatewayFQDN": "[concat(parameters('publicDnsName'), '-', resourceGroup().location, '.xenapponazure.com')]",
 
-    "userImageContainerName": "images",
+    "userImageContainerName": "[parameters('userImageContainerName')]",
     "dscVersion": "2.13",
 
     "virtualNetworkName": "VirtualNetwork",
