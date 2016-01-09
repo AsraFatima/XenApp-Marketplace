@@ -19,17 +19,17 @@ After deployment, the components are fully configured and a simple XenDesktop si
 4. A Storefront deployment is created, providing access to published Apps & Desktops.
 
 # Pre-Requisites
- -
- -1) These templates make use of sysprepped images which must have the above XenDesktop components fully installed. There are currently six required images which must reside in a container of the storage account specified by 'vhdStorage':
- -
- -| Image   | Description    |
- -|:--- |:---|
- -XD-DDC.vhd | XenApp 7.7 Controller Image
- -XD-SF.vhd | StoreFront 3.0 Image
- -XD-LIC.vhd | XenApp 7.7 License Server Image
- -XD-DIR.vhd | XenApp 7.7 Director Image
- -XD-VDA.vhd | XenApp 7.7 Server VDA Installation
- -XD-VDI.vhd | XenApp 7.7 Server VDI Installation
+ 
+These templates make use of sysprepped images which must have the above XenDesktop components fully installed. There are currently six required images which must reside in a container of the storage account specified by 'vhdStorage':
+
+| Image   | Description    |
+|:--- |:---|
+XD-DDC.vhd | XenApp 7.7 Controller Image
+XD-SF.vhd | StoreFront 3.0 Image
+XD-LIC.vhd | XenApp 7.7 License Server Image
+XD-DIR.vhd | XenApp 7.7 Director Image
+XD-VDA.vhd | XenApp 7.7 Server VDA Installation
+XD-VDI.vhd | XenApp 7.7 Server VDI Installation
  
 Click the button below to deploy
 
