@@ -31,6 +31,9 @@
     },
     "encodedNetscalerLicense": {
       "value": ""
+    },
+	"userImageContainerName": {
+      "value": ""
     }
   }
 }
