@@ -235,7 +235,7 @@
         "artifactsBaseUrl": "",
         "description": "Specifies the base location of the child templates and desired state configuration scripts."
       },
-      "defaultValue": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site"
+      "defaultValue": "https://github.com/alexstoddard/azure-quickstart-templates/raw/master/citrix-xd-site-basic"
     },
 
     "artifactsBaseUrlSasToken": {
