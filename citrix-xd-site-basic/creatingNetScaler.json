@@ -5,7 +5,7 @@
     "vhdStorageAccount": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase."
+        "description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase." 
       }
     },
     "publisher": {
