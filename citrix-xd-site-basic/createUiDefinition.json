@@ -155,8 +155,7 @@
       "publicDnsName": "[steps('infraConfig').domainSettings.publicDnsName.domainNameLabel]",
       "publicIpGroup": "[steps('infraConfig').domainSettings.publicDnsName.resourceGroup]",
       "publicIpName": "[steps('infraConfig').domainSettings.publicDnsName.name]",
-      "publicIpNewOrExisting": "[steps('infraConfig').domainSettings.publicDnsName.newOrExistingOrNone]",
-      "imageType": "Gallery"
+      "publicIpNewOrExisting": "[steps('infraConfig').domainSettings.publicDnsName.newOrExistingOrNone]"
     }
   }
 }
