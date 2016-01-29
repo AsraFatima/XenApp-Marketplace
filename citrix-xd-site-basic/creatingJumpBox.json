@@ -8,7 +8,33 @@
         "description": "Storage account to place VHD in."
       }
     },
-    "vmSize": {
+    "publisher": {
+      "type": "string",
+      "defaultValue": "MicrosoftWindowsServer",
+      "metadata": {
+        "description": "Windows OS version for the VM, allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      }
+    },
+    "offer": {
+      "type": "string",
+      "defaultValue": "WindowsServer",
+      "metadata": {
+        "description": "Windows OS version for the VM, allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      }
+    },
+    "sku": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter"
+      ],
+      "metadata": {
+        "description": "Windows OS version for the VM, allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      }
+    },
+    "machineSize": {
       "type": "string",
       "defaultValue": "Standard_A2",
       "allowedValues": [
@@ -32,12 +58,6 @@
         "description": "Name of the machine to which will be created."
       }
     },
-    "privateIp": {
-      "type": "string",
-      "metadata": {
-        "description": "Static IP to assign to this machine."
-      }
-    },
     "availabilitySetId": {
       "type": "string",
       "metadata": {
@@ -48,6 +68,12 @@
       "type": "string",
       "metadata": {
         "description": "Id of the subnet the machine shall connect to."
+      }
+    },
+    "dnsServers": {
+      "type": "array",
+      "metadata": {
+        "description": "Specifies a list of DNS servers the machine should use."
       }
     },
     "lbBapId": {
@@ -62,20 +88,20 @@
         "description": "Inbound rule for this VM."
       }
     },
-    "domainName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name of the domain to create."
-      }
-    },
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
+        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator"
       }
     },
     "adminPassword": {
       "type": "securestring",
+      "metadata": {
+        "description": "The password for the administrator account of the new VM and the domain"
+      }
+    },
+    "shortcuts": {
+      "type": "array",
       "metadata": {
         "description": "The password for the administrator account of the new VM and the domain"
       }
@@ -98,7 +124,7 @@
         "description": "Version of DSC Virtual Machine Extension to use."
       }
     },
-    "configurationFile": {
+    "configurationFileUrl": {
       "type": "string",
       "metadata": {
         "description": "URI of DSC to use for configuration."
@@ -112,9 +138,6 @@
     }
   },
   "variables": {
-    "imagePublisher": "MicrosoftSQLServer",
-    "imageOffer": "SQL2014-WS2012R2",
-    "imageSKU": "Standard",
     "nicName": "[concat(parameters('machineName'),'-Nic')]",
     "nicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]",
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
@@ -123,11 +146,11 @@
   },
   "resources": [
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('nicName')]",
       "tags": {
-        "displayName": "SQLServerNic"
+        "displayName": "JumpBoxNic"
       },
       "location": "[resourceGroup().location]",
       "properties": {
@@ -135,8 +158,7 @@
           {
             "name": "ipconfig",
             "properties": {
-              "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[parameters('privateIp')]",
+              "privateIPAllocationMethod": "Dynamic",
               "subnet": {
                 "id": "[parameters('subnetId')]"
               },
@@ -153,11 +175,11 @@
     },
 
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[parameters('machineName')]",
       "tags": {
-        "displayName": "SQLServerVM"
+        "displayName": "JumpBoxVM"
       },
       "location": "[resourceGroup().location]",
       "dependsOn": [
@@ -168,7 +190,7 @@
           "id": "[parameters('availabilitySetId')]"
         },
         "hardwareProfile": {
-          "vmSize": "[parameters('vmSize')]"
+          "vmSize": "[parameters('machineSize')]"
         },
         "osProfile": {
           "computerName": "[parameters('machineName')]",
@@ -181,9 +203,9 @@
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
-            "sku": "[variables('imageSKU')]",
+            "publisher": "[parameters('publisher')]",
+            "offer": "[parameters('offer')]",
+            "sku": "[parameters('sku')]",
             "version": "latest"
           },
           "osDisk": {
@@ -203,15 +225,14 @@
           ]
         }
       },
-
       "resources": [
         {
           "type": "extensions",
           "name": "configure",
           "tags": {
-            "displayName": "SQLServerConfiguration"
+            "displayName": "JumpBoxConfiguration"
           },
-          "apiVersion": "2015-05-01-preview",
+          "apiVersion": "2015-06-15",
           "location": "[resourceGroup().location]",
           "dependsOn": [
             "[variables('machineId')]"
@@ -221,20 +242,11 @@
             "type": "DSC",
             "typeHandlerVersion": "[parameters('dscVersion')]",
             "settings": {
-              "modulesUrl": "[parameters('configurationFile')]",
               "sasToken": "[parameters('artifactsLocationSasToken')]",
+              "modulesUrl": "[parameters('configurationFileUrl')]",
               "configurationFunction": "[parameters('configurationFunction')]",
               "Properties": {
-                "AdminCreds": {
-                  "UserName": "[parameters('adminUsername')]",
-                  "Password": "PrivateSettingsRef:AdminPassword"
-                },
-                "DomainName": "[parameters('domainName')]"
-              }
-            },
-            "protectedSettings": {
-              "Items": {
-                "AdminPassword": "[parameters('adminPassword')]"
+                "Shortcuts": "[parameters('shortcuts')]"
               }
             }
           }

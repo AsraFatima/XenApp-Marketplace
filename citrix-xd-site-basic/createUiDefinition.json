@@ -6,8 +6,8 @@
       {
         "name": "adminUsername",
         "type": "Microsoft.Common.TextBox",
-        "label": "Administrator username",
-        "toolTip": "Specifies the administrator username for NetScaler, XenApp, and Active Directory.",
+        "label": "Administrators User name",
+        "toolTip": "Specify the administrator user name for NetScaler, XenApp, and Active Directory. The user name cannot exceed 9 characters.",
         "defaultValue": "ctxadmin",
         "constraints": {
           "required": true,
@@ -24,7 +24,7 @@
           "confirmPassword": "Confirm password"
         },
         "toolTip": {
-          "password": "Specifies the administrator password for NetScaler, XenApp, and Active Directory."
+          "password": "Specify the administrator password for NetScaler, XenApp and Active Directory."
         },
         "constraints": {
           "required": true
@@ -37,7 +37,7 @@
         "type": "Microsoft.Common.TextBox",
         "label": "Email Address",
         "defaultValue": "",
-        "toolTip": "Specifies the email used for public certificate registration and email notifications.",
+        "toolTip": "Specify the email address that that will be used to request a public SSL certificate for NetScaler gateway from letsencrypt.org on your behalf. This will also be used to notify you when the solution template has deployed successfully.",
         "constraints": {
           "required": true,
           "regex": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
@@ -66,11 +66,11 @@
                 "name": "publicDnsName",
                 "type": "Microsoft.Network.PublicIpAddressCombo",
                 "label": {
-                  "publicIpAddress": "Public IP address for deployment.",
+                  "publicIpAddress": "IP address Name",
                   "domainNameLabel": "Domain name label for the deployment."
                 },
                 "toolTip": {
-                  "publicIpAddress": "Specifies the name of the public IP in the resource group.",
+                  "publicIpAddress": "Specify a name for the public IP address created as a part of the solution template deployment in the resource group.",
                   "domainNameLabel": "Specifies the global DNS name for the entire deployment through which it can be reached."
                 },
                 "defaultValue": {
@@ -96,7 +96,7 @@
                 "name": "vmSize",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
-                "toolTip": "Specifies the size used for all VMs in the deployment. The number indicates how many virtual machines will be created as a part of template deployment.",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 9 virtual machines of the specified size will be created as a part of the solution template deployment.",
                 "recommendedSizes": [
                   "Standard_A2",
                   "Standard_A3",
@@ -129,7 +129,7 @@
                 "name": "vhdStorage",
                 "type": "Microsoft.Storage.StorageAccountSelector",
                 "label": "Storage Account",
-                "toolTip": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase.",
+                "toolTip": "Specify the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 characters, all lowercase. The default storage type is Standard_LRS.",
                 "defaultValue": {
                   "type": "Standard_LRS"
                 },
@@ -147,11 +147,11 @@
       "adminUsername": "[basics('adminUsername')]",
       "adminPassword": "[basics('adminPassword').password]",
       "emailAddress": "[basics('emailAddress')]",
-      "vhdStorage": "[steps('infraConfig').virtualMachineSettings.vhdStorage.name]",
+      "vhdStorageAccount": "[steps('infraConfig').virtualMachineSettings.vhdStorage.name]",
       "vhdStorageType": "[steps('infraConfig').virtualMachineSettings.vhdStorage.type]",
       "vhdStorageGroup": "[steps('infraConfig').virtualMachineSettings.vhdStorage.resourceGroup]",
       "vhdStorageNewOrExisting": "[steps('infraConfig').virtualMachineSettings.vhdStorage.newOrExisting]",
-      "vmSize": "[steps('infraConfig').virtualMachineSettings.vmSize]",
+      "machineSize": "[steps('infraConfig').virtualMachineSettings.vmSize]",
       "publicDnsName": "[steps('infraConfig').domainSettings.publicDnsName.domainNameLabel]",
       "publicIpGroup": "[steps('infraConfig').domainSettings.publicDnsName.resourceGroup]",
       "publicIpName": "[steps('infraConfig').domainSettings.publicDnsName.name]",

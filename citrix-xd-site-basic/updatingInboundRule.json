@@ -5,31 +5,31 @@
     "loadBalancerName": {
       "type": "string",
       "metadata": {
-        "description": "Azure object name to give to the load balancer"
+        "description": "Specifies the resource name of the load balancer."
       }
     },
     "loadBalancerId": {
       "type": "string",
       "metadata": {
-        "description": "Azure object name to give to the load balancer"
+        "description": "Specifies the id of the load balancer's back end address pool."
       }
     },
     "inboundRuleName": {
       "type": "string",
       "metadata": {
-        "description": "List of inbound NAT rules to define for this load balancer"
+        "description": "Specifies the name of an inbound rule to update."
       }
     },
     "frontendPort": {
       "type": "int",
       "metadata": {
-        "description": "Public IP to be associated with the load balancer"
+        "description": "Specifies the new frontend port for the inbound rule."
       }
     },
     "backendPort": {
       "type": "int",
       "metadata": {
-        "description": "Resource group of the public IP to be associated with the load balancer"
+        "description": "Specifies the new backend port for the inbound rule."
       }
     }
   },
@@ -37,7 +37,7 @@
   },
   "resources": [
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/loadBalancers/inboundNatRules",
       "name": "[concat(parameters('loadBalancerName'), '/', parameters('inboundRuleName'))]",
       "properties": {

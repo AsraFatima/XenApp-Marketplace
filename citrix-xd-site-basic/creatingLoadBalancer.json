@@ -5,26 +5,26 @@
     "publicIpName": {
       "type": "string",
       "metadata": {
-        "description": "Public IP to be associated with the load balancer"
+        "description": "Specifies a unique public DNS prefix for the deployment. This will produce a FQDN of the form '<publicDnsName>.<location>.cloudapp.azure.com'. Up to 62 chars, digits or dashes, lowercase, should start with a letter: must conform to '^[a-z][a-z0-9-]{1,61}[a-z0-9]$'."
       }
     },
     "publicIpGroup": {
       "type": "string",
       "defaultValue": "[resourceGroup().name]",
       "metadata": {
-        "description": "Resource group of the public IP to be associated with the load balancer"
+        "description": "Specifies the resource group which should contain the public IP."
       }
     },
     "loadBalancerName": {
       "type": "string",
       "metadata": {
-        "description": "Azure object name to give to the load balancer"
+        "description": "Specifies the resource name of the load balancer."
       }
     },
     "inboundRules": {
       "type": "array",
       "metadata": {
-        "description": "List of inbound NAT rules to define for this load balancer"
+        "description": "Specifies a list of inbound rules to create on the load balancer."
       }
     }
   },
@@ -33,7 +33,7 @@
   },
   "resources": [
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "2015-06-15",
       "name": "[parameters('loadBalancerName')]",
       "type": "Microsoft.Network/loadBalancers",
       "location": "[resourceGroup().location]",
@@ -63,7 +63,7 @@
     },
 
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/loadBalancers/inboundNatRules",
       "name": "[concat(parameters('loadBalancerName'), '/', parameters('inboundRules')[copyIndex()].name)]",
       "dependsOn": [

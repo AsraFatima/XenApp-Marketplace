@@ -4,12 +4,15 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "location": {
-      "type": "string"
-    },
-    "vhdStorage": {
       "type": "string",
       "metadata": {
-        "Description": "The name of the new storage account created to store the VMs disks"
+        "Description": "Specifies the location of the storage account."
+      }
+    },
+    "vhdStorageAccount": {
+      "type": "string",
+      "metadata": {
+        "Description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase."
       }
     },
     "vhdStorageType": {
@@ -21,20 +24,22 @@
         "Premium_LRS"
       ],
       "metadata": {
-        "Description": "The type of the Storage Account created"
+        "Description": "Specifies the type of storage account, if being created."
       },
       "defaultValue": "Premium_LRS"
     },
     "vhdStorageGroup": {
       "type": "string",
-      "defaultValue": ""
+      "metadata": {
+        "Description": "Specifies the resource group which should contain the storage account."
+      }
     }
   },
   "resources": [
     {
       "type": "Microsoft.Storage/storageAccounts",
-      "name": "[parameters('vhdStorage')]",
-      "apiVersion": "2015-05-01-preview",
+      "name": "[parameters('vhdStorageAccount')]",
+      "apiVersion": "2015-06-15",
       "location": "[parameters('location')]",
       "properties": {
         "accountType": "[parameters('vhdStorageType')]"
@@ -43,7 +48,7 @@
   ],
   "outputs": {
     "storageAccountId": {
-      "value": "[resourceId('Microsoft.Storage/StorageAccounts',parameters('vhdStorage'))]",
+      "value": "[resourceId('Microsoft.Storage/StorageAccounts',parameters('vhdStorageAccount'))]",
       "type": "string"
     }
   }
