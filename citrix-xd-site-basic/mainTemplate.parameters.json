@@ -1,0 +1,104 @@
+{
+  "schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "acmeServer": {
+      "value": ""
+    },
+    "adminPassword": {
+      "value": null
+    },
+    "adminUsername": {
+      "value": null
+    },
+    "artifactsBaseUrl": {
+      "value": ""
+    },
+    "artifactsBaseUrlSasToken": {
+      "value": ""
+    },
+    "customApplications": {
+      "value": {
+        "chocolateyPackages": [
+          "notepadplusplus.install"
+        ],
+        "publishedApplications": [
+          {
+            "name": "Notepad++",
+            "category": "Office",
+            "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Notepad++\\Notepad++.lnk",
+            "icon": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Notepad++\\Notepad++.lnk",
+            "arguments": ""
+          }
+        ],
+        "appGroups": [ ]
+      }
+    },
+    "customInboundRules": {
+      "value": {
+        "rules": [
+         
+        ],
+        "assignments": {
+          "deliveryController": [
+          ],
+          "domainController": [
+          ],
+          "jumpBox": [
+          ],
+          "netScaler": [
+          ],
+          "vda": [
+          ],
+          "vdi": [
+          ]
+        }
+      }
+    },
+    "domainName": {
+      "value": ""
+    },
+    "emailAddress": {
+      "value": ""
+    },
+    "encodedNetScalerLicense": {
+      "value": ""
+    },
+    "html5Mode": {
+      "value": ""
+    },
+    "machineSize": {
+      "value": ""
+    },
+    "publicDnsName": {
+      "value": null
+    },
+    "publicIpGroup": {
+      "value": ""
+    },
+    "publicIpName": {
+      "value": ""
+    },
+    "publicIpNewOrExisting": {
+      "value": ""
+    },
+    "siteName": {
+      "value": ""
+    },
+    "userImageContainerName": {
+      "value": ""
+    },
+    "vhdStorageAccount": {
+      "value": null
+    },
+    "vhdStorageGroup": {
+      "value": ""
+    },
+    "vhdStorageNewOrExisting": {
+      "value": ""
+    },
+    "vhdStorageType": {
+      "value": ""
+    }
+  }
+}
