@@ -7,7 +7,7 @@
     // Storage
     "vhdStorageAccount": {
       "type": "string",
-      "defaultValue": "[toLower(substring(concat(uniqueString(subscription().subscriptionId,resourceGroup().id)), 0, 13))]",
+      "defaultValue": "[toLower(substring(concat('xenapp',uniqueString(subscription().subscriptionId,resourceGroup().id)), 0, 13))]",
       "metadata": {
         "description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase."
       }
@@ -75,7 +75,7 @@
     // Public IP
     "publicDnsName": {
       "type": "string",
-      "defaultValue": "[toLower(substring(concat(resourceGroup().name, uniqueString(subscription().subscriptionId,resourceGroup().id)), 0, 20))]",
+      "defaultValue": "[toLower(substring(concat('xenapp', uniqueString(subscription().subscriptionId,resourceGroup().id)), 0, 13))]",
       "metadata": {
         "description": "Specifies a unique public DNS prefix for the deployment. This will produce a FQDN of the form '<publicDnsName>.<location>.cloudapp.azure.com'. Up to 62 chars, digits or dashes, lowercase, should start with a letter: must conform to '^[a-z][a-z0-9-]{1,61}[a-z0-9]$'."
       }
