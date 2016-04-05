@@ -155,7 +155,7 @@
 
     "html5Mode": {
       "type": "string",
-      "defaultValue": "Always",
+      "defaultValue": "Fallback",
       "allowedValues": [
         "Always",
         "Fallback",
@@ -176,7 +176,7 @@
 
     "certificateAuthority": {
       "type": "string",
-      "defaultValue": "Enterprise",
+      "defaultValue": "ACME",
       "allowedValues": [
         "ACME",
         "Enterprise"
