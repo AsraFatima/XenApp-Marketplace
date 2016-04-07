@@ -188,7 +188,7 @@
 
     "acmeServer": {
       "type": "string",
-      "defaultValue": "https://acme-staging.api.letsencrypt.org/",
+      "defaultValue": "https://acme-v01.api.letsencrypt.org/",
       "allowedValues": [
         "https://acme-staging.api.letsencrypt.org/",
         "https://acme-v01.api.letsencrypt.org/"
