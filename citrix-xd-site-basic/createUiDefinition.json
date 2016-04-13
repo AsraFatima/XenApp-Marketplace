@@ -34,7 +34,7 @@
               },
               {
                 "name": "adminPassword",
-                "type": "Microsoft.Compute.CredentialsCombo",
+                "type": "Microsoft.Common.PasswordBox",
                 "label": {
                   "password": "Password",
                   "confirmPassword": "Confirm password"
