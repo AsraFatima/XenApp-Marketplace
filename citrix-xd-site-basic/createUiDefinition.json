@@ -34,7 +34,7 @@
               },
               {
                 "name": "adminPassword",
-                "type": "Microsoft.Common.PasswordBox",
+                "type": "Microsoft.Compute.CredentialsCombo",
                 "label": {
                   "password": "Password",
                   "confirmPassword": "Confirm password"
@@ -43,9 +43,7 @@
                   "password": "Specify the administrator password for NetScaler, XenApp and Active Directory."
                 },
                 "constraints": {
-                  "required": true,
-                  "regex": "^[^$*].{8,123}",
-                  "validationMessage": "The value must be between 8 and 123 characters long and cannot contain a dollar in the beginning."
+                  "required": true
                 },
                 "osPlatform": "Windows"
               },
