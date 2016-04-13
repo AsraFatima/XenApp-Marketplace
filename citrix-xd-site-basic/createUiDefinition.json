@@ -44,8 +44,8 @@
                 },
                 "constraints": {
                   "required": true,
-                  "regex": "^[^$*].{8,123}"
-                  "validationMessage": "Password cannot contain $ in the beginning and between 8 and 123 characters in length."
+                  "regex": "^[^$*].{8,123}",
+                  "validationMessage": "The value must be between 8 and 123 characters long and cannot contain $ sign in the beginning."
                 },
                 "osPlatform": "Windows"
               },
