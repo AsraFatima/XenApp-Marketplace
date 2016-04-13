@@ -44,7 +44,7 @@
                 },
                 "constraints": {
                   "required": true,
-                  "regex": "^[A-Za-z0-9\S]{8,123}$"
+                  "regex": "^[^$*].{8,123}"
                 },
                 "osPlatform": "Windows"
               },
