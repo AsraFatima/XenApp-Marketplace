@@ -43,7 +43,8 @@
                   "password": "Specify the administrator password for NetScaler, XenApp and Active Directory."
                 },
                 "constraints": {
-                  "required": true
+                  "required": true,
+                  "regex": "^[A-Za-z0-9\S]{8,123}$"
                 },
                 "osPlatform": "Windows"
               },
