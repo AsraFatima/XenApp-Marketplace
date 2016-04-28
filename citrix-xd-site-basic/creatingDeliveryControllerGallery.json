@@ -441,7 +441,7 @@
                 "AppGroups": "[parameters('appGroups')]",
                 "CertificatePassword": {
                   "UserName": "CertificatePassword",
-                  "Password": "PrivateSettingsRef:adminPassword"
+                  "Password": "Citrix123!"
                 },
                 "DeliveryController": "[parameters('deliveryControllerFQDN')]",
                 "SiteName": "[parameters('siteName')]"
