@@ -409,7 +409,7 @@
       "templateUri": "[concat(variables('artifactsLocation'), 'creatingNetscaler', parameters('imageType'), '.json')]",
       "userImageUri": "[concat(variables('userImageLocation'), 'NSVPX_Azure_65.24.vhd')]",
       "publisher": "citrix",
-      "offer": "[concat('netscaler-vpx', parameters('imageQualifier'))]",
+      "offer": "[concat('netscalervpx110-6531', parameters('imageQualifier'))]",
       "sku": "netscalerbyol",
       "virtualServerName": "NetScaler",
       "httpsPort": "[variables('ports').netScalerHttps]",
