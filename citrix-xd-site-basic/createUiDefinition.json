@@ -36,7 +36,7 @@
                 "name": "adminPassword",
                 "type": "Microsoft.Compute.CredentialsCombo",
                 "label": {
-                  "password": "Password",
+                  "password": "Password (no special characters in the beginning)",
                   "confirmPassword": "Confirm password"
                 },
                 "toolTip": {
