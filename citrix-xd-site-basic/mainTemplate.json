@@ -52,7 +52,7 @@
     },
     "imageType": {
       "type": "string",
-      "defaultValue": "Gallery",
+      "defaultValue": "User",
       "allowedValues": [
         "Gallery",
         "User"
@@ -63,7 +63,7 @@
     },
     "imageQualifier": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "-preview",
       "allowedValues": [
         "",
         "-preview"
