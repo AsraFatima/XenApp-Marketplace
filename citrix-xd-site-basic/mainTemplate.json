@@ -257,8 +257,7 @@
     "userImageContainerName": "[parameters('userImageContainerName')]",
     "userImageLocation": "[concat('http://', parameters('vhdStorageAccount'), '.blob.core.windows.net/', variables('userImageContainerName'), '/')]",
 
-    "dscVersion": "2.13",
-    "nspassword": "Citrix123!"
+    "dscVersion": "2.13",    
     "vnetName": "VirtualNetwork",
     "vnetAddressRange": "10.0.0.0/16",
     "subnetName": "Subnet",
