@@ -7,7 +7,7 @@
     // Storage
     "vhdStorageAccount": {
       "type": "string",
-      "defaultValue": "[toLower(substring(concat('xenapp',uniqueString(subscription().subscriptionId,resourceGroup().id)), 0, 13))]",
+      "defaultValue": "xaimages",
       "metadata": {
         "description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase."
       }
@@ -27,14 +27,14 @@
     },
     "vhdStorageGroup": {
       "type": "string",
-      "defaultValue": "[resourceGroup().name]",
+      "defaultValue": "xaimages",
       "metadata": {
         "description": "Specifies the resource group which should contain the storage account."
       }
     },
     "vhdStorageNewOrExisting": {
       "type": "string",
-      "defaultValue": "new",
+      "defaultValue": "existing",
       "allowedValues": [
         "new",
         "existing"
@@ -45,14 +45,14 @@
     },
     "userImageContainerName": {
       "type": "string",
-      "defaultValue": "images3",
+      "defaultValue": "images79",
       "metadata": {
         "description": "Specifies a storage container in the account specified by 'vhdStorageAccount' in which user images of XenApp 7.7 reside."
       }
     },
     "imageType": {
       "type": "string",
-      "defaultValue": "Gallery",
+      "defaultValue": "User",
       "allowedValues": [
         "Gallery",
         "User"
@@ -176,7 +176,7 @@
 
     "certificateAuthority": {
       "type": "string",
-      "defaultValue": "Enterprise",
+      "defaultValue": "ACME",
       "allowedValues": [
         "ACME",
         "Enterprise"
@@ -188,7 +188,7 @@
 
     "acmeServer": {
       "type": "string",
-      "defaultValue": "https://acme-staging.api.letsencrypt.org/",
+      "defaultValue": "https://acme-v01.api.letsencrypt.org/",
       "allowedValues": [
         "https://acme-staging.api.letsencrypt.org/",
         "https://acme-v01.api.letsencrypt.org/"
