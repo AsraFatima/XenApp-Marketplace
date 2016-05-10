@@ -45,7 +45,7 @@
     },
     "userImageContainerName": {
       "type": "string",
-      "defaultValue": "images3",
+      "defaultValue": "images79",
       "metadata": {
         "description": "Specifies a storage container in the account specified by 'vhdStorageAccount' in which user images of XenApp 7.7 reside."
       }
@@ -236,7 +236,7 @@
         "artifactsBaseUrl": "",
         "description": "Specifies the base location of the child templates and desired state configuration scripts."
       },
-      "defaultValue": "https://github.com/AsraFatima/azure-quickstart-templates/raw/master/citrix-xd-site-basic"
+      "defaultValue": "https://raw.githubusercontent.com/AsraFatima/XenApp-Marketplace/master/citrix-xd-site-basic"
     },
 
     "artifactsBaseUrlSasToken": {
