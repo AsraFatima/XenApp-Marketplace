@@ -405,7 +405,7 @@
     },
 
     "netScalerSettings": {
-      "templateUri": "[concat(variables('artifactsLocation'), 'creatingNetscaler', parameters('imageType'), '.json')]",
+      "templateUri": "[concat(variables('artifactsLocation'), 'creatingNetscaler', 'Gallery', '.json')]",
       "userImageUri": "[concat(variables('userImageLocation'), 'NSVPX_Azure_65.24.vhd')]",
       "publisher": "citrix",
       "offer": "[concat('netscaler-vpx', parameters('imageQualifier'))]",
