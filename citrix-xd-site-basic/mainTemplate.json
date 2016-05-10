@@ -63,7 +63,7 @@
     },
     "imageQualifier": {
       "type": "string",
-      "defaultValue": "-preview",
+      "defaultValue": "",
       "allowedValues": [
         "",
         "-preview"
