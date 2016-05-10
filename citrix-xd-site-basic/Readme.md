@@ -29,7 +29,7 @@ XD-VDI.vhd | XenApp 7.7 VDA (VDI) Installation
  
 Click the button below to deploy
 
-<a href="https%3A%2F%2Fraw.githubusercontent.com%2FAsraFatima%2FXenApp-Marketplace%2Fmaster%2Fcitrix-xd-site-basic%2FmainTemplate.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAsraFatima%2FXenApp-Marketplace%2Fmaster%2Fcitrix-xd-site-basic%2FmainTemplate.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
