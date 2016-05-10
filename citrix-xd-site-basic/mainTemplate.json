@@ -7,7 +7,7 @@
     // Storage
     "vhdStorageAccount": {
       "type": "string",
-      "defaultValue": "xaimages",
+      "defaultValue": "[toLower(substring(concat('xenapp',uniqueString(subscription().subscriptionId,resourceGroup().id)), 0, 13))]",
       "metadata": {
         "description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase."
       }
@@ -27,7 +27,7 @@
     },
     "vhdStorageGroup": {
       "type": "string",
-      "defaultValue": "xaimages",
+      "defaultValue": "[resourceGroup().name]",
       "metadata": {
         "description": "Specifies the resource group which should contain the storage account."
       }
@@ -45,14 +45,14 @@
     },
     "userImageContainerName": {
       "type": "string",
-      "defaultValue": "images79",
+      "defaultValue": "images3",
       "metadata": {
         "description": "Specifies a storage container in the account specified by 'vhdStorageAccount' in which user images of XenApp 7.7 reside."
       }
     },
     "imageType": {
       "type": "string",
-      "defaultValue": "User",
+      "defaultValue": "Gallery",
       "allowedValues": [
         "Gallery",
         "User"
