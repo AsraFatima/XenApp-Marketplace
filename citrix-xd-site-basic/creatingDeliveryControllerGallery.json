@@ -199,7 +199,7 @@
     },
     "acmeServer": {
       "type": "string",
-      "defaultValue": "https://acme-staging.api.letsencrypt.org/",
+      "defaultValue": "https://acme-v01.api.letsencrypt.org/",
       "allowedValues": [
         "https://acme-staging.api.letsencrypt.org/",
         "https://acme-v01.api.letsencrypt.org/"
@@ -441,7 +441,7 @@
                 "AppGroups": "[parameters('appGroups')]",
                 "CertificatePassword": {
                   "UserName": "CertificatePassword",
-                  "Password": "Citrix123!"
+                  "Password": "PrivateSettingsRef:adminPassword"
                 },
                 "DeliveryController": "[parameters('deliveryControllerFQDN')]",
                 "SiteName": "[parameters('siteName')]"

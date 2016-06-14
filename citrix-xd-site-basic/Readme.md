@@ -1,6 +1,6 @@
 # Citrix XenApp Site Deployment Sample
 
-This template demonstrates the creation of a self-contained XenApp deployment in Azure, creating the following resources:
+This template demonstrates the creation of a self-contained XenApp environment in Azure, creating the following resources:
 
 * Domain Controller
 * XenApp Desktop Delivery Controller with SQL Express, Citrix License Server, Citrix Director, Citrix Storefront
@@ -19,7 +19,7 @@ After deployment, the components are fully configured and a simple XenApp site i
 
 # Pre-Requisites
  
-These templates make use of sysprepped images which must have the above XenApp components fully installed. There are currently three required images which must reside in a container of the storage account specified by 'vhdStorage.':
+These templates make use of hidden Virtual Machine images which have the above XenApp components fully installed. 
 
 | Image   | Description    |
 |:--- |:---|
@@ -29,12 +29,9 @@ XD-VDI.vhd | XenApp 7.7 VDA (VDI) Installation
  
 Click the button below to deploy
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAsraFatima%2FXenApp-Marketplace%2Fmaster%2Fcitrix-xd-site-basic%2FmainTemplate.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAsraFatima%2Fazure-quickstart-templates%2Fmaster%2Fcitrix-xd-site-basic%2FmainTemplate.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
-
-
-
 
 Template parameters:
 
@@ -57,7 +54,6 @@ Template parameters:
 | domainName | Specifies the name of the newly created Active Directory domain. | 
 | siteName | Specifies the name of the XenApp site. | 
 | html5Mode | Specifies whether HTML5 Reciever is to be used. | 
-| encodedNetScalerLicense | Specifies the NetScaler license to be used. Must be a Base64 encoded binary license file. | 
 | emailAddress | Specifies the email address that that will be used to request a public SSL certificate for NetScaler gateway from letsencrypt.org on your behalf. This will also be used to notify you when the template has deployed successfully. | 
 | acmeServer | Specifies the ACME protocol server used for public TLS certificate requests. Allowed values correspond to letsencrypt.org staging or production. | 
 | customInboundRules | Specifies additional inbound NAT rules to apply in this deployment. Useful for exposing individual machines more directly. The parameter is specified as an object, as in the default. See variable 'loadBalancerSettings' for an example format. | 

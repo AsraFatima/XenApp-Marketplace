@@ -111,7 +111,7 @@
       "adminPassword": "[steps('infraConfig').adminSettings.adminPassword.password]",
       "emailAddress": "[steps('infraConfig').adminSettings.emailAddress]",
       "machineSize": "[steps('infraConfig').virtualMachineSettings.vmSize]",
-      "location":"[location()]"
+      "location": "[location()]"
     }
   }
 }

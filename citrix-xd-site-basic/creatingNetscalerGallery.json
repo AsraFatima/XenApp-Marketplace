@@ -7,13 +7,7 @@
       "metadata": {
         "description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase."
       }
-    },
-    "imageUri": {
-      "type": "string",
-      "metadata": {
-        "description": "Specifies the user image URI to provision this machine on. Must contain the 7.7 release of XenApp."
-      }
-    },
+    },   
     "publisher": {
       "type": "string",
       "metadata": {
