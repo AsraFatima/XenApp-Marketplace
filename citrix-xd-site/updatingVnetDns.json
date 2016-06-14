@@ -5,43 +5,50 @@
     "vnetName": {
       "type": "string",
       "metadata": {
-        "description": "Name of virtual network."
+        "description": "Specifies the name of the virtual network whose DNS settings are to be updated."
       }
     },
     "vnetAddressRange": {
       "type": "string",
       "metadata": {
-        "description": "Address range of the entire virtual network."
+        "description": "Specifies the address range of the entire virtual network."
       }
     },
     "subnetName": {
       "type": "string",
       "metadata": {
-        "description": "Name of subnet within virtual network"
+        "description": "Specifies the name of the subnet within the virtual network."
       }
     },
     "subnetAddressRange": {
       "type": "string",
       "metadata": {
-        "description": "Address range of the given subnet."
+        "description": "Specifies the address range of the subnet within the virtual network."
       }
     },
-    "dnsIp": {
+    "location": {
       "type": "string",
+      "defaultValue": "[resourcegroup().location]",
       "metadata": {
-        "description": "IP of DNS server to use for virtual network."
+        "description": "Specifies the Location for the deployment."
+      }
+    },
+    "dnsServers": {
+      "type": "array",
+      "metadata": {
+        "description": "Specifies the DNS servers the virtual network should use for its DNS settings."
       }
     }
   },
   "resources": [
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "2015-06-15",
       "name": "virtualNetwork",
       "type": "Microsoft.Network/virtualNetworks",
       "tags": {
         "displayName": "VirtualNetwork"
       },
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
@@ -49,7 +56,7 @@
           ]
         },
         "dhcpOptions": {
-          "dnsServers": [ "[parameters('dnsIp')]" ]
+          "dnsServers": "[parameters('dnsServers')]"
         },
         "subnets": [
           {

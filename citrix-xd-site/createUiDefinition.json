@@ -3,87 +3,63 @@
   "version": "0.0.1-preview",
   "parameters": {
     "basics": [
-      {
-        "name": "adminUsername",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Administrator username",
-        "toolTip": "Specifies the administrator username for NetScaler, XenApp, and Active Directory.",
-        "defaultValue": "ctxadmin",
-        "constraints": {
-          "required": true,
-          "regex": "^[A-Za-z0-9]{1,9}$",
-          "validationMessage": "Usernames must be alphanumeric and between 1 and 9 characters in length."
-        }
-      },
 
-      {
-        "name": "adminPassword",
-        "type": "Microsoft.Compute.CredentialsCombo",
-        "label": {
-          "password": "Password",
-          "confirmPassword": "Confirm password"
-        },
-        "toolTip": {
-          "password": "Specifies the administrator password for NetScaler, XenApp, and Active Directory."
-        },
-        "constraints": {
-          "required": true
-        },
-        "osPlatform": "Windows"
-      },
-      
-      {
-        "name": "emailAddress",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Email Address",
-        "defaultValue": "",
-        "toolTip": "Specifies the email used for public certificate registration and email notifications.",
-        "constraints": {
-          "required": true,
-          "regex": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
-          "validationMessage": "Must be a valid email address."
-        }
-      }
     ],
     "steps": [
-
       {
         "name": "infraConfig",
-        "label": "Infrastructure settings",
+        "label": "Deployment settings",
         "subLabel": {
-          "preValidation": "Configure infrastructure settings",
+          "preValidation": "Configure deployment settings",
           "postValidation": "Done"
         },
-        "bladeTitle": "Infrastructure settings",
+        "bladeTitle": "Deployment settings",
         "elements": [
-
           {
-            "name": "domainSettings",
+            "name": "adminSettings",
             "type": "Microsoft.Common.Section",
-            "label": "Domain Settings",
+            "label": "Adminstrator Credentials",
             "elements": [
               {
-                "name": "publicDnsName",
-                "type": "Microsoft.Network.PublicIpAddressCombo",
+                "name": "adminUsername",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Administrator's user name",
+                "toolTip": "Specify the administrator user name for NetScaler, XenApp, and Active Directory. The user name cannot exceed 9 characters.",
+                "defaultValue": "ctxadmin",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(?!admin$)[A-Za-z0-9]{1,9}$",
+                  "validationMessage": "Usernames must be alphanumeric and between 1 and 9 characters in length."
+                }
+              },
+              {
+                "name": "adminPassword",
+                "type": "Microsoft.Compute.CredentialsCombo",
                 "label": {
-                  "publicIpAddress": "Public IP address for deployment.",
-                  "domainNameLabel": "Domain name label for the deployment."
+                  "password": "Password (no special characters in the beginning)",
+                  "confirmPassword": "Confirm password"
                 },
                 "toolTip": {
-                  "publicIpAddress": "Specifies the name of the public IP in the resource group.",
-                  "domainNameLabel": "Specifies the global DNS name for the entire deployment through which it can be reached."
-                },
-                "defaultValue": {
-                  "publicIpAddressName": "publicIp"
-                },
-                "options": {
-                  "hideNone": true,
-                  "hideDomainNameLabel": false
+                  "password": "Specify the administrator password for NetScaler, XenApp and Active Directory."
                 },
                 "constraints": {
                   "required": true
+                },
+                "osPlatform": "Windows"
+              },
+              {
+                "name": "emailAddress",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Email address",
+                "defaultValue": "",
+                "toolTip": "Specify the email address that that will be used to request a public SSL certificate for NetScaler gateway on your behalf. This will also be used to notify you when the solution template has deployed successfully.",
+                "constraints": {
+                  "required": true,
+                  "regex": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+                  "validationMessage": "Must be a valid email address."
                 }
               }
+
             ]
           },
 
@@ -96,7 +72,7 @@
                 "name": "vmSize",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
-                "toolTip": "Specifies the size used for all VMs in the deployment. The number indicates how many virtual machines will be created as a part of template deployment.",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 6 virtual machines of the specified size will be created as a part of the solution template deployment.",
                 "recommendedSizes": [
                   "Standard_A2",
                   "Standard_A3",
@@ -122,40 +98,20 @@
                   "offer": "WindowsServer",
                   "sku": "2012‐R2‐Datacenter"
                 },
-                "count": 9
-              },
-
-              {
-                "name": "vhdStorage",
-                "type": "Microsoft.Storage.StorageAccountSelector",
-                "label": "Storage Account",
-                "toolTip": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase.",
-                "defaultValue": {
-                  "type": "Standard_LRS"
-                },
-                "constraints": {
-                  "allowedTypes": [ ],
-                  "excludedTypes": [ ]
-                }
+                "count": 6
               }
             ]
           }
+
         ]
       }
     ],
     "outputs": {
-      "adminUsername": "[basics('adminUsername')]",
-      "adminPassword": "[basics('adminPassword').password]",
-      "emailAddress": "[basics('emailAddress')]",
-      "vhdStorage": "[steps('infraConfig').virtualMachineSettings.vhdStorage.name]",
-      "vhdStorageType": "[steps('infraConfig').virtualMachineSettings.vhdStorage.type]",
-      "vhdStorageGroup": "[steps('infraConfig').virtualMachineSettings.vhdStorage.resourceGroup]",
-      "vhdStorageNewOrExisting": "[steps('infraConfig').virtualMachineSettings.vhdStorage.newOrExisting]",
-      "vmSize": "[steps('infraConfig').virtualMachineSettings.vmSize]",
-      "publicDnsName": "[steps('infraConfig').domainSettings.publicDnsName.domainNameLabel]",
-      "publicIpGroup": "[steps('infraConfig').domainSettings.publicDnsName.resourceGroup]",
-      "publicIpName": "[steps('infraConfig').domainSettings.publicDnsName.name]",
-      "publicIpNewOrExisting": "[steps('infraConfig').domainSettings.publicDnsName.newOrExistingOrNone]"
+      "adminUsername": "[steps('infraConfig').adminSettings.adminUsername]",
+      "adminPassword": "[steps('infraConfig').adminSettings.adminPassword.password]",
+      "emailAddress": "[steps('infraConfig').adminSettings.emailAddress]",
+      "machineSize": "[steps('infraConfig').virtualMachineSettings.vmSize]",
+      "location": "[location()]"
     }
   }
 }

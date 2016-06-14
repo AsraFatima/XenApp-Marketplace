@@ -5,21 +5,21 @@
     "vhdStorageAccount": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase."
+        "description": "Storage account to place VHD in."
       }
     },
     "publisher": {
       "type": "string",
       "defaultValue": "MicrosoftWindowsServer",
       "metadata": {
-        "description": "Specifies the marketplace publisher of the image to provision this machine on."
+        "description": "Windows OS version for the VM, allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
       }
     },
     "offer": {
       "type": "string",
       "defaultValue": "WindowsServer",
       "metadata": {
-        "description": "Specifies the marketplace offer of the image to provision this machine on."
+        "description": "Windows OS version for the VM, allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
       }
     },
     "sku": {
@@ -31,7 +31,7 @@
         "2012-R2-Datacenter"
       ],
       "metadata": {
-        "description": "Specifies the marketplace sku of the image to provision this machine on."
+        "description": "Windows OS version for the VM, allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
       }
     },
     "machineSize": {
@@ -41,7 +41,6 @@
         "description": "The size of the virtual machines"
       }
     },
-
     "location": {
       "type": "string",
       "defaultValue": "[resourcegroup().location]",
@@ -52,85 +51,85 @@
     "machineName": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the size of the virtual machine."
-      }
-    },
-    "privateIp": {
-      "type": "string",
-      "metadata": {
-        "description": "Specifies the static IP to assign to this machine."
+        "description": "Name of the machine to which will be created."
       }
     },
     "availabilitySetId": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the availability set this machine should belong to."
+        "description": "Availability set this machine belongs to"
       }
     },
     "subnetId": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the id of the subnet the machine should connect to."
+        "description": "Id of the subnet the machine shall connect to."
+      }
+    },
+    "dnsServers": {
+      "type": "array",
+      "metadata": {
+        "description": "Specifies a list of DNS servers the machine should use."
       }
     },
     "lbBapId": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the id of the load balancer's back end address pool."
+        "description": "Load balancer address pool."
       }
     },
     "lbInboundRules": {
       "type": "array",
       "metadata": {
-        "description": "Specifies a list of inbound NAT rules to apply to this VM."
-      }
-    },
-    "domainName": {
-      "type": "string",
-      "metadata": {
-        "description": "Specifies the name of the Active Directory domain."
+        "description": "Inbound rule for this VM."
       }
     },
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the name of the administrator for machines, Active Directory domain, NetScaler and XenApp. Exclusion list: 'admin','administrator'. Must be no more than 9 alphanumeric characters."
+        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator"
       }
     },
     "adminPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Specifies the password of the administrator for machines, Active Directory domain, NetScaler and XenApp."
+        "description": "The password for the administrator account of the new VM and the domain"
+      }
+    },
+    "shortcuts": {
+      "type": "array",
+      "metadata": {
+        "description": "The password for the administrator account of the new VM and the domain"
       }
     },
     "artifactsLocationUri": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the shared access signature token which provides access to the base artifacts location."
+        "description": "Location of scripts and other related assets"
       }
     },
     "artifactsLocationSasToken": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the base location of the child templates and desired state configuration scripts."
+        "description": "Token allowing for access of asset location"
       }
     },
     "dscVersion": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the version of the DSC extension to use."
+        "description": "Version of DSC Virtual Machine Extension to use."
       }
     },
     "configurationFileUrl": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the URI of the DSC configuration script."
+        "description": "URI of DSC to use for configuration."
       }
     },
     "configurationFunction": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the function to be executed in the DSC configuration script."
+        "description": "Function to call in DSC"
       }
     }
   },
@@ -138,11 +137,8 @@
     "nicName": "[concat(parameters('machineName'),'-Nic')]",
     "nicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]",
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
-    "configurationId": "[concat(resourceId('Microsoft.Compute/virtualMachines',parameters('machineName')),'/extensions/configure')]",
     "osDiskName": "[concat(resourceGroup().name,'-',parameters('machineName'),'-osdisk')]",
-    "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]",
-    "dataDiskName": "[concat(resourceGroup().name,'-', parameters('machineName'),'-data-disk1')]",
-    "dataDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('dataDiskName'),'.vhd')]"
+    "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
   },
   "resources": [
     {
@@ -150,7 +146,7 @@
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('nicName')]",
       "tags": {
-        "displayName": "DomainControllerNic"
+        "displayName": "JumpBoxNic"
       },
       "location": "[parameters('location')]",
       "properties": {
@@ -158,8 +154,7 @@
           {
             "name": "ipconfig",
             "properties": {
-              "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[parameters('privateIp')]",
+              "privateIPAllocationMethod": "Dynamic",
               "subnet": {
                 "id": "[parameters('subnetId')]"
               },
@@ -180,9 +175,9 @@
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[parameters('machineName')]",
       "tags": {
-        "displayName": "DomainControllerVM"
+        "displayName": "JumpBoxVM"
       },
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "dependsOn": [
         "[variables('nicId')]"
       ],
@@ -216,19 +211,7 @@
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
-          },
-          "dataDisks": [
-            {
-              "name": "[variables('dataDiskName')]",
-              "vhd": {
-                "uri": "[variables('dataDiskUri')]"
-              },
-              "caching": "None",
-              "createOption": "Empty",
-              "diskSizeGB": "1000",
-              "lun": 0
-            }
-          ]
+          }
         },
         "networkProfile": {
           "networkInterfaces": [
@@ -238,13 +221,12 @@
           ]
         }
       },
-
       "resources": [
         {
           "type": "extensions",
           "name": "configure",
           "tags": {
-            "displayName": "DomainControllerConfiguration"
+            "displayName": "JumpBoxConfiguration"
           },
           "apiVersion": "2015-06-15",
           "location": "[parameters('location')]",
@@ -256,20 +238,11 @@
             "type": "DSC",
             "typeHandlerVersion": "[parameters('dscVersion')]",
             "settings": {
-              "modulesUrl": "[parameters('configurationFileUrl')]",
               "sasToken": "[parameters('artifactsLocationSasToken')]",
+              "modulesUrl": "[parameters('configurationFileUrl')]",
               "configurationFunction": "[parameters('configurationFunction')]",
               "Properties": {
-                "AdminCreds": {
-                  "UserName": "[parameters('adminUsername')]",
-                  "Password": "PrivateSettingsRef:AdminPassword"
-                },
-                "DomainName": "[parameters('domainName')]"
-              }
-            },
-            "protectedSettings": {
-              "Items": {
-                "AdminPassword": "[parameters('adminPassword')]"
+                "Shortcuts": "[parameters('shortcuts')]"
               }
             }
           }
@@ -285,10 +258,6 @@
     "nicId": {
       "type": "string",
       "value": "[variables('nicId')]"
-    },
-    "configurationId": {
-      "type": "string",
-      "value": "[variables('configurationId')]"
     }
   }
 }

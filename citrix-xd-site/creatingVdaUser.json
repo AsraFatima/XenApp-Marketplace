@@ -8,57 +8,48 @@
         "description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase."
       }
     },
+    "imageUri": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the user image URI to provision this machine on. Must contain the 7.7 release of XenApp."
+      }
+    },
     "publisher": {
       "type": "string",
-      "defaultValue": "MicrosoftWindowsServer",
       "metadata": {
         "description": "Specifies the marketplace publisher of the image to provision this machine on."
       }
     },
-    "offer": {
+    "sku": {
       "type": "string",
-      "defaultValue": "WindowsServer",
       "metadata": {
         "description": "Specifies the marketplace offer of the image to provision this machine on."
       }
     },
-    "sku": {
+    "offer": {
       "type": "string",
-      "defaultValue": "2012-R2-Datacenter",
-      "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter"
-      ],
       "metadata": {
         "description": "Specifies the marketplace sku of the image to provision this machine on."
-      }
-    },
-    "machineSize": {
-      "type": "string",
-      "defaultValue": "Standard_A2",     
-      "metadata": {
-        "description": "The size of the virtual machines"
-      }
-    },
-
-    "location": {
-      "type": "string",
-      "defaultValue": "[resourcegroup().location]",
-      "metadata": {
-        "description": "Specifies the Location for the deployment."
       }
     },
     "machineName": {
       "type": "string",
       "metadata": {
+        "description": "Specifies the name of this machine in Azure and on the network."
+      }
+    },
+    "machineSize": {
+      "type": "string",
+      "defaultValue": "Standard_A2",    
+      "metadata": {
         "description": "Specifies the size of the virtual machine."
       }
     },
-    "privateIp": {
+    "location": {
       "type": "string",
+      "defaultValue": "[resourcegroup().location]",
       "metadata": {
-        "description": "Specifies the static IP to assign to this machine."
+        "description": "Specifies the Location for the deployment."
       }
     },
     "availabilitySetId": {
@@ -71,6 +62,18 @@
       "type": "string",
       "metadata": {
         "description": "Specifies the id of the subnet the machine should connect to."
+      }
+    },
+    "privateIp": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the private IP on the subnet the machine should connect to."
+      }
+    },
+    "dnsServers": {
+      "type": "array",
+      "metadata": {
+        "description": "Specifies a list of DNS servers the machine should use."
       }
     },
     "lbBapId": {
@@ -91,6 +94,42 @@
         "description": "Specifies the name of the Active Directory domain."
       }
     },
+    "domainControllerIp": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the IP of a domain controller on the virtual network."
+      }
+    },
+    "domainControllerFQDN": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the FQDN of a domain controller on the virtual network."
+      }
+    },
+    "packages": {
+      "type": "array",
+      "metadata": {
+        "description": "Specifies a list of chocolatey packages to install on the VDA."
+      }
+    },
+    "publishedApplications": {
+      "type": "array",
+      "metadata": {
+        "description": "Specifies a list of applications to publish through XenApp."
+      }
+    },
+    "storeFrontUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the internal URL for StoreFront."
+      }
+    },
+    "deliveryControllerFQDN": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the name of the XenApp delivery controller on the virtual network."
+      }
+    },
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -103,16 +142,28 @@
         "description": "Specifies the password of the administrator for machines, Active Directory domain, NetScaler and XenApp."
       }
     },
+    "deploymentFQDN": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the FQDN of the Azure public IP to which the gateway FQDN will be forwarded."
+      }
+    },
+    "gatewayFQDN": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the FQDN where the user will reach the deployment."
+      }
+    },
     "artifactsLocationUri": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the shared access signature token which provides access to the base artifacts location."
+        "description": "Specifies the base location of the child templates and desired state configuration scripts."
       }
     },
     "artifactsLocationSasToken": {
       "type": "string",
       "metadata": {
-        "description": "Specifies the base location of the child templates and desired state configuration scripts."
+        "description": "Specifies the shared access signature token which provides access to the base artifacts location."
       }
     },
     "dscVersion": {
@@ -135,14 +186,18 @@
     }
   },
   "variables": {
+    "imagePublisher": "[parameters('publisher')]",
+    "imageOffer": "[parameters('offer')]",
+    "imageSKU": "[parameters('sku')]",
+    "planPublisher": "[parameters('publisher')]",
+    "planProduct": "[parameters('offer')]",
+    "planName": "[parameters('sku')]",
     "nicName": "[concat(parameters('machineName'),'-Nic')]",
     "nicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]",
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
     "configurationId": "[concat(resourceId('Microsoft.Compute/virtualMachines',parameters('machineName')),'/extensions/configure')]",
     "osDiskName": "[concat(resourceGroup().name,'-',parameters('machineName'),'-osdisk')]",
-    "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]",
-    "dataDiskName": "[concat(resourceGroup().name,'-', parameters('machineName'),'-data-disk1')]",
-    "dataDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('dataDiskName'),'.vhd')]"
+    "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
   },
   "resources": [
     {
@@ -150,7 +205,7 @@
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('nicName')]",
       "tags": {
-        "displayName": "DomainControllerNic"
+        "displayName": "VdaNic"
       },
       "location": "[parameters('location')]",
       "properties": {
@@ -180,11 +235,11 @@
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[parameters('machineName')]",
       "tags": {
-        "displayName": "DomainControllerVM"
+        "displayName": "VdaVM"
       },
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "dependsOn": [
-        "[variables('nicId')]"
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
       ],
       "properties": {
         "availabilitySet": {
@@ -196,39 +251,21 @@
         "osProfile": {
           "computerName": "[parameters('machineName')]",
           "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]",
-          "windowsConfiguration": {
-            "provisionVMAgent": true,
-            "enableAutomaticUpdates": true
-          }
+          "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "[parameters('publisher')]",
-            "offer": "[parameters('offer')]",
-            "sku": "[parameters('sku')]",
-            "version": "latest"
-          },
           "osDisk": {
-            "name": "[variables('osDiskName')]",
+            "image": {
+              "uri": "[parameters('imageUri')]"
+            },
+            "osType": "Windows",
+            "name": "osdisk",
             "vhd": {
               "uri": "[variables('osDiskUri')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
-          },
-          "dataDisks": [
-            {
-              "name": "[variables('dataDiskName')]",
-              "vhd": {
-                "uri": "[variables('dataDiskUri')]"
-              },
-              "caching": "None",
-              "createOption": "Empty",
-              "diskSizeGB": "1000",
-              "lun": 0
-            }
-          ]
+          }
         },
         "networkProfile": {
           "networkInterfaces": [
@@ -238,15 +275,14 @@
           ]
         }
       },
-
       "resources": [
         {
           "type": "extensions",
           "name": "configure",
-          "tags": {
-            "displayName": "DomainControllerConfiguration"
-          },
           "apiVersion": "2015-06-15",
+          "tags": {
+            "displayName": "VdaConfiguration"
+          },
           "location": "[parameters('location')]",
           "dependsOn": [
             "[variables('machineId')]"
@@ -260,35 +296,29 @@
               "sasToken": "[parameters('artifactsLocationSasToken')]",
               "configurationFunction": "[parameters('configurationFunction')]",
               "Properties": {
+                "DomainName": "[parameters('domainName')]",
                 "AdminCreds": {
                   "UserName": "[parameters('adminUsername')]",
-                  "Password": "PrivateSettingsRef:AdminPassword"
+                  "Password": "PrivateSettingsRef:adminPassword"
                 },
-                "DomainName": "[parameters('domainName')]"
+                "DomainController": "[parameters('domainControllerFQDN')]",
+                "DomainControllerIp": "[parameters('domainControllerIp')]",
+                "DeliveryController": "[parameters('deliveryControllerFQDN')]",
+                "DeploymentFQDN": "[parameters('deploymentFQDN')]",
+                "GatewayFQDN": "[parameters('gatewayFQDN')]",
+                "Packages": "[parameters('packages')]",
+                "PublishedApplications": "[parameters('publishedApplications')]",
+                "StoreFrontUrl": "[parameters('storeFrontUrl')]"
               }
             },
             "protectedSettings": {
               "Items": {
-                "AdminPassword": "[parameters('adminPassword')]"
+                "adminPassword": "[parameters('adminPassword')]"
               }
             }
           }
         }
       ]
     }
-  ],
-  "outputs": {
-    "machineId": {
-      "type": "string",
-      "value": "[variables('machineId')]"
-    },
-    "nicId": {
-      "type": "string",
-      "value": "[variables('nicId')]"
-    },
-    "configurationId": {
-      "type": "string",
-      "value": "[variables('configurationId')]"
-    }
-  }
+  ]
 }

@@ -1,33 +1,77 @@
 {
-  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "adminUsername": {
+    "acmeServer": {
       "value": ""
     },
     "adminPassword": {
+      "value": null
+    },
+    "adminUsername": {
+      "value": null
+    },
+    "artifactsBaseUrl": {
+      "value": ""
+    },
+    "artifactsBaseUrlSasToken": {
+      "value": ""
+    },
+    "customApplications": {
+      "value": {
+        "chocolateyPackages": [
+          "notepadplusplus.install"
+        ],
+        "publishedApplications": [
+          {
+            "name": "Notepad++",
+            "category": "Office",
+            "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Notepad++\\Notepad++.lnk",
+            "icon": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Notepad++\\Notepad++.lnk",
+            "arguments": ""
+          }
+        ],
+        "appGroups": [ ]
+      }
+    },
+    "customInboundRules": {
+      "value": {
+        "rules": [
+         
+        ],
+        "assignments": {
+          "deliveryController": [
+          ],
+          "domainController": [
+          ],
+          "jumpBox": [
+          ],
+          "netScaler": [
+          ],
+          "vda": [
+          ],
+          "vdi": [
+          ]
+        }
+      }
+    },
+    "domainName": {
       "value": ""
     },
     "emailAddress": {
       "value": ""
     },
-    "vhdStorage": {
+    "encodedNetScalerLicense": {
       "value": ""
     },
-    "vhdStorageType": {
+    "html5Mode": {
       "value": ""
     },
-    "vhdStorageGroup": {
-      "value": ""
-    },
-    "vhdStorageNewOrExisting": {
-      "value": ""
-    },
-    "vmSize": {
+    "machineSize": {
       "value": ""
     },
     "publicDnsName": {
-      "value": ""
+      "value": null
     },
     "publicIpGroup": {
       "value": ""
@@ -38,7 +82,22 @@
     "publicIpNewOrExisting": {
       "value": ""
     },
-    "encodedNetscalerLicense": {
+    "siteName": {
+      "value": ""
+    },
+    "userImageContainerName": {
+      "value": ""
+    },
+    "vhdStorageAccount": {
+      "value": null
+    },
+    "vhdStorageGroup": {
+      "value": ""
+    },
+    "vhdStorageNewOrExisting": {
+      "value": ""
+    },
+    "vhdStorageType": {
       "value": ""
     }
   }
