@@ -35,9 +35,9 @@
       }
     }
   },
- 
-  "variables": {
 
+  "variables": {
+    "rulecount":  "[int(sub(length(parameters('inboundRules')), 1))]"    
   },
   "resources": [
     {
@@ -69,25 +69,39 @@
         ]
       }
     },
-
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[concat(parameters('loadBalancerName'), '/', parameters('inboundRules')[0].name)]",
+      "type": "Microsoft.Network/loadBalancers/inboundNatRules",
+      "dependsOn": [ "Microsoft.Network/loadBalancers/LoadBalancer" ],
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
+        },
+        "protocol": "tcp",
+        "frontendPort": "[parameters('inboundRules')[0].frontendPort]",
+        "backendPort": "[parameters('inboundRules')[0].backendPort]",
+        "enableFloatingIP": false
+      }
+    },
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/loadBalancers/inboundNatRules",
-      "name": "[concat(parameters('loadBalancerName'), '/', parameters('inboundRules')[copyIndex()].name)]",
+      "name": "[concat(parameters('loadBalancerName'), '/', parameters('inboundRules')[copyIndex(1)].name)]",
       "dependsOn": [
-        "Microsoft.Network/loadBalancers/LoadBalancer"
+        "[concat('Microsoft.Network/loadBalancers/',parameters('loadBalancerName'),'/inboundNatRules/', parameters('inboundRules')[copyIndex()].name)]"        
       ],
       "copy": {
         "name": "inboundNatRulesCopy",
-        "count": "[length(parameters('inboundRules'))]"
+        "count": "[variables('rulecount')]"
       },
       "properties": {
         "frontendIPConfiguration": {
           "id": "[concat(resourceId('Microsoft.Network/loadBalancers','loadBalancer'),'/frontendIPConfigurations/LBFE')]"
         },
         "protocol": "tcp",
-        "frontendPort": "[parameters('inboundRules')[copyIndex()].frontendPort]",
-        "backendPort": "[parameters('inboundRules')[copyIndex()].backendPort]",
+        "frontendPort": "[parameters('inboundRules')[copyIndex(1)].frontendPort]",
+        "backendPort": "[parameters('inboundRules')[copyIndex(1)].backendPort]",
         "enableFloatingIP": false
       }
     }

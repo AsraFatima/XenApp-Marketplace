@@ -36,11 +36,11 @@
                 "name": "adminPassword",
                 "type": "Microsoft.Compute.CredentialsCombo",
                 "label": {
-                  "password": "Password (no special characters in the beginning)",
+                  "password": "Password (no consecutive special characters)",
                   "confirmPassword": "Confirm password"
                 },
                 "toolTip": {
-                  "password": "Specify the administrator password for NetScaler, XenApp and Active Directory."
+                  "password": "Specify the administrator password for NetScaler, XenApp and Active Directory. Do not use consecutive specila characters."
                 },
                 "constraints": {
                   "required": true
@@ -74,9 +74,9 @@
                 "label": "Size",
                 "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 6 virtual machines of the specified size will be created as a part of the solution template deployment.",
                 "recommendedSizes": [
-                  "Standard_A2",
-                  "Standard_A3",
-                  "Standard_A4"
+                  "Standard_D2_v2",
+                  "Standard_D3_v2",
+                  "Standard_D4_v2"
                 ],
                 "constraints": {
                   "allowedSizes": [
@@ -89,7 +89,13 @@
                     "Standard_G2",
                     "Standard_G3",
                     "Standard_G4",
-                    "Standard_G5"
+                    "Standard_G5",                    
+                    "Standard_D2_v2",
+                    "Standard_D3_v2",
+                    "Standard_D4_v2",
+                    "Standard_D5_v2",
+                    "Standard_D11_v2",
+                    "Standard_D12_v2"
                   ]
                 },
                 "osPlatform": "Windows",
@@ -101,6 +107,35 @@
                 "count": 6
               }
             ]
+          },
+
+          {
+            "name": "vdaSettings",
+            "type": "Microsoft.Common.Section",
+            "label": "XenApp VDA Settings",
+            "elements": [
+              {
+                "name": "vdaVersion",
+                "type": "Microsoft.Common.DropDown",
+                "label": "XenApp VDA version",
+                "defaultValue": "Windows Server 2012 R2",
+                "toolTip": "Select the Operating System version for the XenApp VDA that needs to be deployed in the XenApp Trial environment.",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Windows Server 2012 R2",
+                      "value": "coldfire"
+                    },
+                    {
+                      "label": "Windows Server 2016 Tech Preview 5",
+                      "value": "server2016"
+                    }
+                  ]
+                },
+                "visible": true
+              }
+
+            ]
           }
 
         ]
@@ -111,6 +146,7 @@
       "adminPassword": "[steps('infraConfig').adminSettings.adminPassword.password]",
       "emailAddress": "[steps('infraConfig').adminSettings.emailAddress]",
       "machineSize": "[steps('infraConfig').virtualMachineSettings.vmSize]",
+      "vdaVersion": "[steps('infraConfig').vdaSettings.vdaVersion]",
       "location": "[location()]"
     }
   }

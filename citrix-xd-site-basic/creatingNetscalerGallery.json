@@ -7,7 +7,7 @@
       "metadata": {
         "description": "Specifies the name of the storage account used for virtual machine disks. This has to be a unique name, up to 24 chars, all lowercase."
       }
-    },   
+    },
     "publisher": {
       "type": "string",
       "metadata": {
@@ -26,9 +26,15 @@
         "description": "Specifies the marketplace sku of the image to provision this machine on."
       }
     },
+    "version": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the marketplace version of the image to provision this machine on."
+      }
+    },
     "machineSize": {
       "type": "string",
-      "defaultValue": "Standard_A2",     
+      "defaultValue": "Standard_A2",
       "metadata": {
         "description": "Specifies the size of the virtual machine."
       }
@@ -102,6 +108,7 @@
     "planPublisher": "[parameters('publisher')]",
     "planProduct": "[parameters('offer')]",
     "planName": "[parameters('sku')]",
+    "version": "[parameters('version')]",
     "nicName": "[concat(parameters('machineName'),'-Nic')]",
     "nicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]",
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
@@ -175,7 +182,7 @@
             "publisher": "[variables('imagePublisher')]",
             "offer": "[variables('imageOffer')]",
             "sku": "[variables('imageSKU')]",
-            "version": "latest"
+            "version": "[variables('version')]"
           },
           "osDisk": {
             "name": "[variables('osDiskName')]",
