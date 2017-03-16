@@ -40,7 +40,7 @@
     },
     "machineSize": {
       "type": "string",
-      "defaultValue": "Standard_A2",     
+      "defaultValue": "Standard_A2",
       "metadata": {
         "description": "Specifies the size of the virtual machine."
       }
@@ -183,6 +183,17 @@
       "metadata": {
         "description": "Specifies the function to be executed in the DSC configuration script."
       }
+    },
+    "azureGov": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the shared access signature token which provides access to the base artifacts location."
+      },
+      "defaultValue": "true",
+      "allowedValues": [
+        "true",
+        "false"
+      ]
     }
   },
   "variables": {
@@ -197,7 +208,16 @@
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
     "configurationId": "[concat(resourceId('Microsoft.Compute/virtualMachines',parameters('machineName')),'/extensions/configure')]",
     "osDiskName": "[concat(resourceGroup().name,'-',parameters('machineName'),'-osdisk')]",
-    "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
+   "osDisk": {
+    "true": {
+      "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.usgovcloudapi.net/vhds/',variables('osDiskName'),'.vhd')]"
+    },
+      "false": {
+        "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
+      }
+    },
+    "currentOsDisk": "[variables('osDisk')[parameters('azureGov')]]",
+    "osDiskUri": "[variables('currentOsDisk').osDiskUri]"
   },
   "resources": [
     {
@@ -297,8 +317,8 @@
           "properties": {
             "publisher": "Microsoft.Powershell",
             "type": "DSC",
-            "typeHandlerVersion": "[parameters('dscVersion')]",
-            "settings": {
+            "typeHandlerVersion": "2.19",
+             "settings": {
               "modulesUrl": "[parameters('configurationFileUrl')]",
               "sasToken": "[parameters('artifactsLocationSasToken')]",
               "configurationFunction": "[parameters('configurationFunction')]",

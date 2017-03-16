@@ -1,6 +1,6 @@
 ﻿{
   "handler": "Microsoft.Compute.MultiVm",
-  "version": "0.0.1-preview",
+  "version": "0.1.2-preview",
   "parameters": {
     "basics": [
 
@@ -36,14 +36,14 @@
                 "name": "adminPassword",
                 "type": "Microsoft.Compute.CredentialsCombo",
                 "label": {
-                  "password": "Password (no consecutive special characters)",
+                  "password": "Password",
                   "confirmPassword": "Confirm password"
                 },
                 "toolTip": {
-                  "password": "Specify the administrator password for NetScaler, XenApp and Active Directory. Do not use consecutive specila characters."
+                  "password": "Specify the administrator password for NetScaler, XenApp and Active Directory."
                 },
-                "constraints": {
-                  "required": true
+                 "constraints": {
+                  "required": true                  
                 },
                 "osPlatform": "Windows"
               },
@@ -69,7 +69,93 @@
             "label": "Virtual Machine Settings",
             "elements": [
               {
-                "name": "vmSize",
+                "name": "vhdStorageType",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Storage Type",
+                "defaultValue": "SSD",
+                "toolTip": "Select the storage type for the deployment.",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "SSD",
+                      "value": "Standard_LRS"
+                    },                   
+                    {
+                      "label": "HDD",
+                      "value": "Premium_LRS"
+                    }
+                  ]
+                }                
+              },
+              {
+                "name": "vmSizePremium",
+                "type": "Microsoft.Compute.SizeSelector",
+                "label": "Size",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 6 virtual machines of the specified size will be created as a part of the solution template deployment.",
+                "recommendedSizes": [
+                  "Standard_DS2_v2",
+                  "Standard_DS3_v2",
+                  "Standard_DS4_v2"
+                ],
+                "constraints": {
+                  "allowedSizes": [
+                    "Standard_DS2_v2",
+                    "Standard_DS3_v2",
+                    "Standard_DS4_v2",
+                    "Standard_DS5_v2",
+                    "Standard_DS11_v2",
+                    "Standard_DS12_v2",
+                    "Standard_DS13_v2",
+                    "Standard_DS14_v2",
+                    "Standard_DS15_v2",
+					"Standard_DS2",
+                    "Standard_DS3",
+                    "Standard_DS4",
+                    "Standard_DS11",
+                    "Standard_D12",
+                    "Standard_DS13",
+                    "Standard_DS14",
+                    "Standard_GS1",
+                    "Standard_GS2",
+                    "Standard_GS3",
+                    "Standard_GS4"
+                  ]
+                },
+                "visible": "[and(contains(steps('infraConfig').virtualMachineSettings.vhdStorageType,'Premium_LRS'),not(contains(location(),'usgov')))]",
+                "osPlatform": "Windows",
+                "count": 6
+              },
+              {
+                "name": "vmUSGovSizePremium",
+                "type": "Microsoft.Compute.SizeSelector",
+                "label": "Size",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 6 virtual machines of the specified size will be created as a part of the solution template deployment.",
+                "recommendedSizes": [
+                  "Standard_DS2",
+                  "Standard_DS3",
+                  "Standard_DS4"
+                ],
+                "constraints": {
+                  "allowedSizes": [
+                    "Standard_DS2",
+                    "Standard_DS3",
+                    "Standard_DS4",
+                    "Standard_DS11",
+                    "Standard_D12",
+                    "Standard_DS13",
+                    "Standard_DS14",
+                    "Standard_GS1",
+                    "Standard_GS2",
+                    "Standard_GS3",
+                    "Standard_GS4"
+                  ]
+                },
+                "visible": "[and(contains(steps('infraConfig').virtualMachineSettings.vhdStorageType,'Premium_LRS'),contains(location(),'usgov'))]",
+                "osPlatform": "Windows",
+                "count": 6
+              },
+              {
+                "name": "vmSizeStandard",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
                 "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 6 virtual machines of the specified size will be created as a part of the solution template deployment.",
@@ -89,7 +175,7 @@
                     "Standard_G2",
                     "Standard_G3",
                     "Standard_G4",
-                    "Standard_G5",                    
+                    "Standard_G5",
                     "Standard_D2_v2",
                     "Standard_D3_v2",
                     "Standard_D4_v2",
@@ -98,17 +184,13 @@
                     "Standard_D12_v2"
                   ]
                 },
+                "visible": "[contains(steps('infraConfig').virtualMachineSettings.vhdStorageType,'Standard_LRS')]",
                 "osPlatform": "Windows",
-                "imageReference": {
-                  "publisher": "MicrosoftWindowsServer",
-                  "offer": "WindowsServer",
-                  "sku": "2012‐R2‐Datacenter"
-                },
                 "count": 6
               }
             ]
           },
-
+          
           {
             "name": "vdaSettings",
             "type": "Microsoft.Common.Section",
@@ -127,7 +209,7 @@
                       "value": "coldfire"
                     },
                     {
-                      "label": "Windows Server 2016 Tech Preview 5",
+                      "label": "Windows Server 2016 Datacenter",
                       "value": "server2016"
                     }
                   ]
@@ -144,9 +226,11 @@
     "outputs": {
       "adminUsername": "[steps('infraConfig').adminSettings.adminUsername]",
       "adminPassword": "[steps('infraConfig').adminSettings.adminPassword.password]",
+      "vhdStorageType": "[steps('infraConfig').virtualMachineSettings.vhdStorageType]",
       "emailAddress": "[steps('infraConfig').adminSettings.emailAddress]",
-      "machineSize": "[steps('infraConfig').virtualMachineSettings.vmSize]",
+      "machineSize": "[coalesce(steps('infraConfig').virtualMachineSettings.vmSizePremium,steps('infraConfig').virtualMachineSettings.vmSizeStandard,steps('infraConfig').virtualMachineSettings.vmUSGovSizePremium) ]",
       "vdaVersion": "[steps('infraConfig').vdaSettings.vdaVersion]",
+      "azureGov":"[toLower(string(contains(location(),'usgov')))]",
       "location": "[location()]"
     }
   }

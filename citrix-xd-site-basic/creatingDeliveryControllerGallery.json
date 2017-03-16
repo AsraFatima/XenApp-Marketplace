@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
@@ -36,7 +36,7 @@
     },
     "machineSize": {
       "type": "string",
-      "defaultValue": "Standard_A2", 
+      "defaultValue": "Standard_A2",
       "metadata": {
         "description": "Specifies the size of the virtual machine."
       }
@@ -289,6 +289,17 @@
       "metadata": {
         "description": "Specifies the function to be executed in the DSC configuration script."
       }
+    },
+    "azureGov": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the shared access signature token which provides access to the base artifacts location."
+      },
+      "defaultValue": "true",
+      "allowedValues": [
+        "true",
+        "false"
+      ]
     }
   },
 
@@ -304,7 +315,16 @@
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
     "configurationId": "[concat(resourceId('Microsoft.Compute/virtualMachines',parameters('machineName')),'/extensions/configure')]",
     "osDiskName": "[concat(resourceGroup().name,'-',parameters('machineName'),'-osdisk')]",
-    "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
+    "osDisk": {
+      "true": {
+        "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.usgovcloudapi.net/vhds/',variables('osDiskName'),'.vhd')]"
+      },
+      "false": {
+        "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
+      }
+    },
+    "currentOsDisk": "[variables('osDisk')[parameters('azureGov')]]",
+    "osDiskUri": "[variables('currentOsDisk').osDiskUri]"
   },
   "resources": [
     {
@@ -392,69 +412,7 @@
             }
           ]
         }
-      },
-
-      "resources": [
-        {
-          "type": "extensions",
-          "name": "configure",
-          "tags": {
-            "displayName": "ControllerConfiguration"
-          },
-          "apiVersion": "2015-06-15",
-          "location": "[parameters('location')]",
-          "dependsOn": [
-            "[variables('machineId')]"
-          ],
-          "properties": {
-            "publisher": "Microsoft.Powershell",
-            "type": "DSC",
-            "typeHandlerVersion": "[parameters('dscVersion')]",
-            "settings": {
-              "modulesUrl": "[parameters('configurationFileUrl')]",
-              "sasToken": "[parameters('artifactsLocationSasToken')]",
-              "configurationFunction": "[parameters('configurationFunction')]",
-              "Properties": {
-                "AdminCreds": {
-                  "UserName": "[parameters('adminUsername')]",
-                  "Password": "PrivateSettingsRef:adminPassword"
-                },
-                "DomainName": "[parameters('domainName')]",
-                "DomainController": "[parameters('domainControllerFQDN')]",
-                "DomainControllerIp": "[parameters('domainControllerPrivateIp')]",
-                "SQLServer": "[parameters('sqlServerFQDN')]",
-                "SQLServerInstance": "[parameters('sqlServerInstance')]",
-                "LicenseServer": "[parameters('licenseServerFQDN')]",
-                "NetScalerIP": "[parameters('netScalerPrivateIp')]",
-                "StoreFront": "[parameters('storeFrontFQDN')]",
-                "VirtualServerName": "[parameters('virtualServerName')]",
-                "VirtualServerPort": "[parameters('virtualServerPort')]",
-                "ForwardServerPort": "[parameters('forwardServerPort')]",
-                "StoreFrontGatewayName": "[parameters('storeFrontGatewayName')]",
-                "EmailAddress": "[parameters('emailAddress')]",
-                "Authority": "[parameters('certificateAuthority')]",
-                "ACMEServer": "[parameters('acmeServer')]",
-                "GatewayFQDN": "[parameters('gatewayFQDN')]",
-                "DeploymentFQDN": "[parameters('deploymentFQDN')]",
-                "ThemeUri": "[parameters('themeUri')]",
-                "HTML5Mode": "[parameters('html5Mode')]",
-                "AppGroups": "[parameters('appGroups')]",
-                "CertificatePassword": {
-                  "UserName": "CertificatePassword",
-                  "Password": "PrivateSettingsRef:adminPassword"
-                },
-                "DeliveryController": "[parameters('deliveryControllerFQDN')]",
-                "SiteName": "[parameters('siteName')]"
-              }
-            },
-            "protectedSettings": {
-              "Items": {
-                "AdminPassword": "[parameters('adminPassword')]"
-              }
-            }
-          }
-        }
-      ]
+      }
     }
   ],
   "outputs": {

@@ -36,12 +36,11 @@
     },
     "machineSize": {
       "type": "string",
-      "defaultValue": "Standard_A2",     
+      "defaultValue": "Standard_A2",
       "metadata": {
         "description": "The size of the virtual machines"
       }
     },
-
     "location": {
       "type": "string",
       "defaultValue": "[resourcegroup().location]",
@@ -132,6 +131,17 @@
       "metadata": {
         "description": "Specifies the function to be executed in the DSC configuration script."
       }
+    },
+    "azureGov": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the shared access signature token which provides access to the base artifacts location."
+      },
+      "defaultValue": "true",
+      "allowedValues": [
+        "true",
+        "false"
+      ]
     }
   },
   "variables": {
@@ -140,9 +150,27 @@
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
     "configurationId": "[concat(resourceId('Microsoft.Compute/virtualMachines',parameters('machineName')),'/extensions/configure')]",
     "osDiskName": "[concat(resourceGroup().name,'-',parameters('machineName'),'-osdisk')]",
-    "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]",
     "dataDiskName": "[concat(resourceGroup().name,'-', parameters('machineName'),'-data-disk1')]",
-    "dataDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('dataDiskName'),'.vhd')]"
+    "osDisk": {
+      "true": {
+        "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.usgovcloudapi.net/vhds/',variables('osDiskName'),'.vhd')]"
+      },
+      "false": {
+        "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
+      }
+    },
+    "currentOsDisk": "[variables('osDisk')[parameters('azureGov')]]",
+    "osDiskUri": "[variables('currentOsDisk').osDiskUri]",
+    "dataDisk": {
+      "true": {
+        "dataDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.usgovcloudapi.net/vhds/',variables('dataDiskName'),'.vhd')]"
+      },
+      "false": {
+        "dataDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('dataDiskName'),'.vhd')]"
+      }
+    },
+    "currentDataDisk": "[variables('dataDisk')[parameters('azureGov')]]",
+    "dataDiskUri": "[variables('currentDataDisk').dataDiskUri]"
   },
   "resources": [
     {
@@ -254,7 +282,7 @@
           "properties": {
             "publisher": "Microsoft.Powershell",
             "type": "DSC",
-            "typeHandlerVersion": "[parameters('dscVersion')]",
+            "typeHandlerVersion": "2.19",
             "settings": {
               "modulesUrl": "[parameters('configurationFileUrl')]",
               "sasToken": "[parameters('artifactsLocationSasToken')]",

@@ -1,4 +1,4 @@
-{
+  {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
 
@@ -247,7 +247,7 @@
         "artifactsBaseUrl": "",
         "description": "Specifies the base location of the child templates and desired state configuration scripts."
       },
-      "defaultValue": "https://github.com/AsraFatima/azure-quickstart-templates/raw/master/citrix-xd-site-basic"
+      "defaultValue": "https://raw.githubusercontent.com/simongdavies/cuddly-octo-fortnight/master"
     },
 
     "artifactsBaseUrlSasToken": {
@@ -256,315 +256,345 @@
         "description": "Specifies the shared access signature token which provides access to the base artifacts location."
       },
       "defaultValue": ""
+    },
+    "azureGov": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the shared access signature token which provides access to the base artifacts location."
+      },
+      "defaultValue": "false",
+      "allowedValues": [
+        "true",
+        "false"
+      ]
     }
   },
 
-  "variables": {
-    "artifactsLocation": "[concat(parameters('artifactsBaseUrl'),'/')]",
-    "artifactsLocationSasToken": "[parameters('artifactsBaseUrlSasToken')]",
-    "deploymentFQDN": "[concat(parameters('publicDnsName'), '.', parameters('location'), '.cloudapp.azure.com')]",
-    "gatewayFQDN": "[concat(parameters('publicDnsName'), '-', parameters('location'), '.xenapponazure.com')]",
-
-    "userImageContainerName": "[parameters('userImageContainerName')]",
-    "userImageLocation": "[concat('http://', parameters('vhdStorageAccount'), '.blob.core.windows.net/', variables('userImageContainerName'), '/')]",
-
-    "dscVersion": "2.18",
-
-    "vnetName": "VirtualNetwork",
-    "vnetAddressRange": "10.0.0.0/16",
-    "subnetName": "Subnet",
-    "subnetId": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetName')), '/subnets/', variables('subnetName'))]",
-    "dnsServers": [ "[variables('domainControllerSettings').privateIp]" ],
-
-    "subnetAddressRange": "10.0.0.0/20",
-
-    "creatingPublicIpUrl": "[concat(variables('artifactsLocation'), 'publicIp-', parameters('publicIpNewOrExisting'), '.json')]",
-    "creatingStorageAccountUrl": "[concat(variables('artifactsLocation'), 'storageAccount-', parameters('vhdStorageNewOrExisting'), '.json')]",
-    "creatingLoadBalancerUrl": "[concat(variables('artifactsLocation'), 'creatingLoadBalancer.json')]",
-    "updatingVnetDnsUrl": "[concat(variables('artifactsLocation'), 'updatingVnetDns.json')]",
-    "updatingNicRulesUrl": "[concat(variables('artifactsLocation'), 'updatingNicRules.json')]",
-    "updatingInboundRuleUrl": "[concat(variables('artifactsLocation'), 'updatingInboundRule.json')]",
-
-    "availabilitySetName": "AvailabilitySet",
-    "availabilitySetId": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]",
-
-    "loadBalancerSettings": {
-      "name": "LoadBalancer",
-      "id": "[resourceId('Microsoft.Network/loadBalancers', 'LoadBalancer')]",
-      "lbapid": "[concat( resourceId('Microsoft.Network/loadBalancers','loadBalancer'), '/backendAddressPools/LBBAP')]",
-      "rulesPath": "[concat(resourceId('Microsoft.Network/loadBalancers', 'LoadBalancer'), '/inboundNatRules/')]",
-      "defaultInboundRules": [
-        {
-          "name": "ns-http",
-          "frontendPort": "[variables('ports').http]",
-          "backendPort": 80
+    "variables": {
+      "artifactsLocation": "[concat(parameters('artifactsBaseUrl'),'/')]",
+      "artifactsLocationSasToken": "[parameters('artifactsBaseUrlSasToken')]",
+      "deploymentFQDNPublicCloudtrue": "[concat(parameters('publicDnsName'), '.', parameters('location'), '.cloudapp.azure.com')]",
+      "deploymentFQDNPublicCloudfalse": "[concat(parameters('publicDnsName'), '.', parameters('location'), '.cloudapp.usgovcloudapi.net')]",
+      "deployFQDN": {
+        "true": {
+          "deploymentFQDN": "[concat(parameters('publicDnsName'), '.', parameters('location'), '.cloudapp.usgovcloudapi.net')]"
         },
-        {
-          "name": "ns-https",
-          "frontendPort": "[variables('ports').https]",
-          "backendPort": 11443
-        },
-        {
-          "name": "jump-rdp",
-          "frontendPort": 3389,
-          "backendPort": 3389
+        "false": {
+          "deploymentFQDN": "[concat(parameters('publicDnsName'), '.', parameters('location'), '.cloudapp.azure.com')]"
         }
-      ]
-    },
+      },
+      "currentDeployFQDN": "[variables('deployFQDN')[parameters('azureGov')]]",
+      "deploymentFQDN": "[variables('currentDeployFQDN').deploymentFQDN]",
+      "gatewayFQDN": "[concat(parameters('publicDnsName'), '-', parameters('location'), '.xenapponazure.com')]",
 
-    "jumpBoxSettings": {
-      "templateUri": "[concat(variables('artifactsLocation'), 'creatingJumpBox.json')]",
-      "publisher": "MicrosoftWindowsServer",
-      "offer": "WindowsServer",
-      "sku": "2012-R2-Datacenter",
-      "machineName": "XA-JumpBox",
-      "machineSize": "Standard_A1",
-      "location": "[parameters('location')]",
-      "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/JumpBox.ps1.zip')]",
-      "configurationFunction": "JumpBox.ps1\\JumpBox",
-      "inboundRules": [
-        { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'jump-rdp')]" }
-      ],
-      "shortcuts": [
-        "[variables('applications')[0]]",
-        "[variables('applications')[1]]",
-        "[variables('applications')[2]]",
-        "[variables('applications')[3]]",
-        "[variables('applications')[4]]"
-      ]
-    },
+      "userImageContainerName": "[parameters('userImageContainerName')]",
+      "userImageLocation": "[concat('http://', parameters('vhdStorageAccount'), '.blob.core.windows.net/', variables('userImageContainerName'), '/')]",
 
-    "domainControllerSettings": {
-      "templateUri": "[concat(variables('artifactsLocation'), 'creatingDomainController.json')]",
-      "publisher": "MicrosoftWindowsServer",
-      "offer": "WindowsServer",
-      "sku": "2012-R2-Datacenter",
-      "machineName": "XA-DC",
-      "fqdn": "[concat('XA-DC', '.', parameters('domainName'))]",
-      "machineSize": "[parameters('machineSize')]",
-      "location": "[parameters('location')]",
-      "privateIp": "10.0.0.8",
-      "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/DomainController.ps1.zip')]",
-      "configurationFunction": "DomainController.ps1\\DomainController",
-      "inboundRules": [ ]
-    },
+      "dscVersion": "2.19",
 
-    "sqlServerSettings": {
-      "machineName": "[variables('deliveryControllerSettings').machineName]",
-      "fqdn": "localhost",
-      "instance": "SQLEXPRESS"
-    },
+      "vnetName": "VirtualNetwork",
+      "vnetAddressRange": "10.0.0.0/16",
+      "subnetName": "Subnet",
+      "subnetId": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnetName')), '/subnets/', variables('subnetName'))]",
+      "dnsServers": [ "[variables('domainControllerSettings').privateIp]" ],
 
-    "deliveryControllerSettings": {
-      "templateUri": "[concat(variables('artifactsLocation'), 'creatingDeliveryController', parameters('imageType'), '.json')]",
-      "userImageUri": "[concat(variables('userImageLocation'), 'XD-ALL.vhd')]",
-      "publisher": "citrix",
-      "offer": "[concat('xenapp-server', parameters('imageQualifier'))]",
-      "sku": "coldfireserver",
-      "machineName": "XA-Controller",
-      "fqdn": "[concat('XA-Controller', '.', parameters('domainName'))]",
-      "machineSize": "[parameters('machineSize')]",
-      "location": "[parameters('location')]",
-      "privateIp": "10.0.0.9",
-      "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/DeliveryController.ps1.zip')]",
-      "configurationFunction": "DeliveryController.ps1\\DeliveryController",
-      "inboundRulesInitial": [
-        { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'ns-http')]" }
-      ],
-      "inboundRulesFinal": [ ]
-    },
+      "subnetAddressRange": "10.0.0.0/20",
 
-    "licenseServerSettings": {
-      "machineName": "[variables('deliveryControllerSettings').machineName]",
-      "fqdn": "[variables('deliveryControllerSettings').fqdn]",
-      "privateIp": "[variables('deliveryControllerSettings').privateIp]"
-    },
+      "creatingPublicIpUrl": "[concat(variables('artifactsLocation'), 'publicIp-', parameters('publicIpNewOrExisting'), '.json')]",
+      "creatingStorageAccountUrl": "[concat(variables('artifactsLocation'), 'storageAccount-', parameters('vhdStorageNewOrExisting'), '.json')]",
+      "creatingLoadBalancerUrl": "[concat(variables('artifactsLocation'), 'creatingLoadBalancer.json')]",
+      "updatingVnetDnsUrl": "[concat(variables('artifactsLocation'), 'updatingVnetDns.json')]",
+      "updatingNicRulesUrl": "[concat(variables('artifactsLocation'), 'updatingNicRules.json')]",
+      "updatingInboundRuleUrl": "[concat(variables('artifactsLocation'), 'updatingInboundRule.json')]",
 
-    "storeFrontSettings": {
-      "machineName": "[variables('deliveryControllerSettings').machineName]",
-      "fqdn": "[variables('deliveryControllerSettings').fqdn]",
-      "privateIp": "[variables('deliveryControllerSettings').privateIp]",
-      "httpPort": "[variables('ports').http]",
-      "gatewayName": "NetScaler", 
-	  "themeUri": "[concat(variables('artifactsLocation'), 'Resources/receivertheme.tar.gz')]",    
-      "html5Mode": "[parameters('html5Mode')]",
-      "appGroups": [
+      "availabilitySetName": "AvailabilitySet",
+      "availabilitySetId": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]",
+
+      "loadBalancerSettings": {
+        "name": "LoadBalancer",
+        "id": "[resourceId('Microsoft.Network/loadBalancers', 'LoadBalancer')]",
+        "lbapid": "[concat( resourceId('Microsoft.Network/loadBalancers','loadBalancer'), '/backendAddressPools/LBBAP')]",
+        "rulesPath": "[concat(resourceId('Microsoft.Network/loadBalancers', 'LoadBalancer'), '/inboundNatRules/')]",
+        "defaultInboundRules": [
+          {
+            "name": "ns-http",
+            "frontendPort": "[variables('ports').http]",
+            "backendPort": 80
+          },
+          {
+            "name": "ns-https",
+            "frontendPort": "[variables('ports').https]",
+            "backendPort": 11443
+          },
+          {
+            "name": "jump-rdp",
+            "frontendPort": 3389,
+            "backendPort": 3389
+          }
+        ]
+      },
+
+      "jumpBoxSettings": {
+        "templateUri": "[concat(variables('artifactsLocation'), 'creatingJumpBox.json')]",
+        "publisher": "MicrosoftWindowsServer",
+        "offer": "WindowsServer",
+        "sku": "2012-R2-Datacenter",
+        "machineName": "XA-JumpBox",
+        "machineSize": "[parameters('machineSize')]",
+        "location": "[parameters('location')]",
+        "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/JumpBox.ps1.zip')]",
+        "configurationFunction": "JumpBox.ps1\\JumpBox",
+        "inboundRules": [
+          { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'jump-rdp')]" }
+        ],
+        "shortcuts": [
+          "[variables('applications')[0]]",
+          "[variables('applications')[1]]",
+          "[variables('applications')[2]]",
+          "[variables('applications')[3]]",
+          "[variables('applications')[4]]"
+        ]
+      },
+
+      "domainControllerSettings": {
+        "templateUri": "[concat(variables('artifactsLocation'), 'creatingDomainController.json')]",
+        "publisher": "MicrosoftWindowsServer",
+        "offer": "WindowsServer",
+        "sku": "2012-R2-Datacenter",
+        "machineName": "XA-DC",
+        "fqdn": "[concat('XA-DC', '.', parameters('domainName'))]",
+        "machineSize": "[parameters('machineSize')]",
+        "location": "[parameters('location')]",
+        "privateIp": "10.0.0.8",
+        "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/DomainController.ps1.zip')]",
+        "configurationFunction": "DomainController.ps1\\DomainController",
+        "inboundRules": [ ]
+      },
+
+      "sqlServerSettings": {
+        "machineName": "[variables('deliveryControllerSettings').machineName]",
+        "fqdn": "localhost",
+        "instance": "SQLEXPRESS"
+      },
+
+      "deliveryControllerSettings": {
+        "templateUri": "[concat(variables('artifactsLocation'), 'creatingDeliveryController', parameters('imageType'), '.json')]",
+        "extensionUri": "[concat(variables('artifactsLocation'), 'creatingDeliveryControllerGalleryExtension.json')]",
+        "userImageUri": "[concat(variables('userImageLocation'), 'XD-ALL.vhd')]",
+        "publisher": "citrix",
+        "offer": "[concat('xenapp-server', parameters('imageQualifier'))]",
+        "sku": "coldfireserver",
+        "machineName": "XA-Controller",
+        "fqdn": "[concat('XA-Controller', '.', parameters('domainName'))]",
+        "machineSize": "[parameters('machineSize')]",
+        "location": "[parameters('location')]",
+        "privateIp": "10.0.0.9",
+        "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/DeliveryController.ps1.zip')]",
+        "configurationFunction": "DeliveryController.ps1\\DeliveryController",
+        "inboundRulesInitial": [
+          { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'ns-http')]" }
+        ],
+        "inboundRulesFinal": [ ]
+      },
+
+      "licenseServerSettings": {
+        "machineName": "[variables('deliveryControllerSettings').machineName]",
+        "fqdn": "[variables('deliveryControllerSettings').fqdn]",
+        "privateIp": "[variables('deliveryControllerSettings').privateIp]"
+      },
+
+      "storeFrontSettings": {
+        "machineName": "[variables('deliveryControllerSettings').machineName]",
+        "fqdn": "[variables('deliveryControllerSettings').fqdn]",
+        "privateIp": "[variables('deliveryControllerSettings').privateIp]",
+        "httpPort": "[variables('ports').http]",
+        "gatewayName": "NetScaler",
+        "themeUri": "[concat(variables('artifactsLocation'), 'Resources/receivertheme.tar.gz')]",
+        "html5Mode": "[parameters('html5Mode')]",
+        "appGroups": [
+          {
+            "title": "Administrative Apps",
+            "description": "Applications for a XenApp administrator",
+            "tile": "appBundle1",
+            "category": "Administrative Apps"
+          },
+          {
+            "title": "Remote Desktop Connections",
+            "description": "Connect to machines in the XenApp deployment",
+            "tile": "appBundle2",
+            "category": "Remote Desktop Connections"
+          },
+          {
+            "title": "NetScaler Management",
+            "description": "Applications for a NetScaler administrator",
+            "tile": "appBundle3",
+            "category": "NetScaler Management"
+          },
+          {
+            "title": "Office 365 Apps",
+            "description": "Applications for a Office 365",
+            "tile": "appBundle3",
+            "category": "Office Applications"
+          }
+        ]
+      },
+
+      "directorSettings": {
+        "machineName": "[variables('deliveryControllerSettings').machineName]",
+        "fqdn": "[variables('deliveryControllerSettings').fqdn]",
+        "privateIp": "[variables('deliveryControllerSettings').privateIp]"
+      },
+
+      "netScalerSettings": {
+        "templateUri": "[concat(variables('artifactsLocation'), 'creatingNetscalerGallery.json')]",
+        "userImageUri": "[concat(variables('userImageLocation'), 'ns-vpx.vhd')]",
+        "publisher": "citrix",
+        "offer": "[concat('netscalervpx111')]",
+        "sku": "netscalerbyol",
+        "version": "111.50.10",
+        "virtualServerName": "StoreFront",
+        "httpsPort": "[variables('ports').netScalerHttps]",
+        "httpPort": "[variables('ports').netScalerHttp]",
+        "machineName": "XA-NetScaler",
+        "location": "[parameters('location')]",
+        "fqdn": "[concat('XA-NetScaler', '.', parameters('domainName'))]",
+        "machineSize": "[parameters('machineSize')]",
+        "privateIp": "10.0.0.11",
+        "inboundRulesInitial": [
+          { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'ns-https')]" }
+        ],
+        "inboundRulesFinal": [
+          { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'ns-https')]" },
+          { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'ns-http')]" }
+        ]
+      },
+
+      "ports": {
+        "http": 80,
+        "https": 443,
+        "netScalerHttps": 11443,
+        "netScalerHttp": 11480
+      },
+
+      "paths": {
+        "iePath": "C:\\Program Files\\Internet Explorer\\iexplore.exe",
+        "studioPath": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Citrix\\Citrix Studio.lnk",
+        "rdpPath": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Accessories\\Remote Desktop Connection.lnk",
+        "storeFrontUrl": "[concat('https://', variables('storeFrontSettings').machineName, '.', parameters('domainName'), '/Citrix/Store')]",
+        "directorUrl": "[concat('https://', variables('directorSettings').machineName, '.', parameters('domainName'), '/director')]",
+        "netScalerUrl": "[concat('http://', variables('netScalerSettings').privateIp)]",
+        "outlookPath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\OUTLOOK.EXE",
+        "wordPath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\WINWORD.EXE",
+        "excelPath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\EXCEL.EXE",
+        "onenotePath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\ONENOTE.EXE",
+        "powerpointPath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\POWERPNT.EXE"
+      },
+
+      "icons": {
+        "outlookIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\outlook.ico",
+        "excelIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\excel.ico",
+        "onenoteIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\onenote.ico",
+        "powerpointIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\powerpoint.ico",
+        "wordIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\word.ico"
+      },
+
+      "applications": [
         {
-          "title": "Administrative Apps",
-          "description": "Applications for a XenApp administrator",
-          "tile": "appBundle1",
-          "category": "Administrative Apps"
+          "name": "Domain Controller",
+          "category": "Remote Desktop Connections",
+          "path": "[variables('paths').rdpPath]",
+          "icon": "[variables('paths').rdpPath]",
+          "arguments": "[concat('/v:', variables('domainControllerSettings').machineName, '.', parameters('domainName'))]"
         },
         {
-          "title": "Remote Desktop Connections",
-          "description": "Connect to machines in the XenApp deployment",
-          "tile": "appBundle2",
-          "category": "Remote Desktop Connections"
+          "name": "XenApp Controller",
+          "category": "Remote Desktop Connections",
+          "path": "[variables('paths').rdpPath]",
+          "icon": "[variables('paths').rdpPath]",
+          "type": "Shortcut",
+          "arguments": "[concat('/v:', variables('deliveryControllerSettings').machineName, '.', parameters('domainName'))]"
         },
         {
-          "title": "NetScaler Management",
-          "description": "Applications for a NetScaler administrator",
-          "tile": "appBundle3",
-          "category": "NetScaler Management"
+          "name": "XenApp VDA",
+          "category": "Remote Desktop Connections",
+          "path": "[variables('paths').rdpPath]",
+          "icon": "[variables('paths').rdpPath]",
+          "arguments": "[concat('/v:', 'XA-VDA', '.', parameters('domainName'))]"
         },
         {
-          "title": "Office 365 Apps",
-          "description": "Applications for a Office 365",
-          "tile": "appBundle3",
-          "category": "Office Applications"
+          "name": "NetScaler Web UI",
+          "category": "NetScaler Management",
+          "path": "[variables('paths').iePath]",
+          "icon": "[variables('paths').iePath]",
+          "arguments": "[variables('paths').netScalerUrl]"
+        },
+        {
+          "name": "XenApp Server VDI",
+          "category": "Remote Desktop Connections",
+          "path": "[variables('paths').rdpPath]",
+          "icon": "[variables('paths').rdpPath]",
+          "arguments": "[concat('/v:', 'XA-VDI', '.', parameters('domainName'))]"
+        },
+        {
+          "name": "Citrix Director",
+          "category": "Administrative Apps",
+          "path": "[variables('paths').iePath]",
+          "icon": "[variables('paths').studioPath]",
+          "arguments": "[variables('paths').directorUrl]"
+        },
+        {
+          "name": "Citrix Studio",
+          "category": "Administrative Apps",
+          "path": "[variables('paths').studioPath]",
+          "icon": "[variables('paths').studioPath]",
+          "type": "Shortcut",
+          "arguments": ""
         }
-      ]
-    },
-
-    "directorSettings": {
-      "machineName": "[variables('deliveryControllerSettings').machineName]",
-      "fqdn": "[variables('deliveryControllerSettings').fqdn]",
-      "privateIp": "[variables('deliveryControllerSettings').privateIp]"
-    },
-
-    "netScalerSettings": {
-      "templateUri": "[concat(variables('artifactsLocation'), 'creatingNetscalerGallery.json')]",
-      "publisher": "citrix",
-      "offer": "[concat('netscalervpx110-6531')]",
-      "sku": "netscalerbyol",
-      "version": "1.0.2",
-      "virtualServerName": "StoreFront",
-      "httpsPort": "[variables('ports').netScalerHttps]",
-      "httpPort": "[variables('ports').netScalerHttp]",
-      "machineName": "XA-NetScaler",
-      "location": "[parameters('location')]",
-      "fqdn": "[concat('XA-NetScaler', '.', parameters('domainName'))]",
-      "machineSize": "[parameters('machineSize')]",
-      "privateIp": "10.0.0.11",
-      "inboundRulesInitial": [
-        { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'ns-https')]" }
       ],
-      "inboundRulesFinal": [
-        { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'ns-https')]" },
-        { "id": "[concat(variables('loadBalancerSettings').rulesPath, 'ns-http')]" }
-      ]
-    },
 
-    "ports": {
-      "http": 80,
-      "https": 443,
-      "netScalerHttps": 11443,
-      "netScalerHttp": 11480
-    },
+      "vdaSettings": {
+        "templateUri": "[concat(variables('artifactsLocation'), 'creatingVda', parameters('imageType'), '.json')]",
+        "extensionUri": "[concat(variables('artifactsLocation'), 'creatingVdaGalleryExtension.json')]",
+        "userImageUri": "[concat(variables('userImageLocation'), 'XD-VDA.vhd')]",
+        "publisher": "citrix",
+        "offer": "[concat('xenapp-vda-rdsh', parameters('imageQualifier'))]",
+        "sku": "[concat(parameters('vdaVersion'),'rdsh')]",
+        "vdaPrefix": "XA-VDA",
+        "machineSize": "[parameters('machineSize')]",
+        "location": "[parameters('location')]",
+        "vdaCount": 1,
+        "privateIp": "10.0.0.14",
+        "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/VDA.ps1.zip')]",
+        "configurationFunction": "VDA.ps1\\VDA",
+        "prepareConfigurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/PrepareVDA.ps1.zip')]",
+        "prepareConfigurationFunction": "PrepareVDA.ps1\\PrepareVDA",
+        "inboundRules": [ ],
+        "chocolateyPackages": [
+        ],
+        "publishedApplications": "[variables('applications')]"
+      },
 
-    "paths": {
-      "iePath": "C:\\Program Files\\Internet Explorer\\iexplore.exe",
-      "studioPath": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Citrix\\Citrix Studio.lnk",
-      "rdpPath": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Accessories\\Remote Desktop Connection.lnk",      
-      "storeFrontUrl": "[concat('https://', variables('storeFrontSettings').machineName, '.', parameters('domainName'), '/Citrix/Store')]",
-      "directorUrl": "[concat('https://', variables('directorSettings').machineName, '.', parameters('domainName'), '/director')]",
-      "netScalerUrl": "[concat('http://', variables('netScalerSettings').privateIp)]",
-      "outlookPath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\OUTLOOK.EXE",
-      "wordPath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\WINWORD.EXE",
-      "excelPath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\EXCEL.EXE",
-      "onenotePath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\ONENOTE.EXE",
-      "powerpointPath": "C:\\Program Files\\Microsoft Office 15\\root\\office15\\POWERPNT.EXE"
-    },
-
-    "icons": {
-      "outlookIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\outlook.ico",
-      "excelIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\excel.ico",
-      "onenoteIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\onenote.ico",
-      "powerpointIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\powerpoint.ico",
-      "wordIcon": "C:\\Program Files\\Microsoft Office 15\\root\\icons\\word.ico"
-    },
-
-    "applications": [
-      {
-        "name": "Domain Controller",
-        "category": "Remote Desktop Connections",
-        "path": "[variables('paths').rdpPath]",
-        "icon": "[variables('paths').rdpPath]",
-        "arguments": "[concat('/v:', variables('domainControllerSettings').machineName, '.', parameters('domainName'))]"
-      },
-      {
-        "name": "XenApp Controller",
-        "category": "Remote Desktop Connections",
-        "path": "[variables('paths').rdpPath]",
-        "icon": "[variables('paths').rdpPath]",
-        "type": "Shortcut",
-        "arguments": "[concat('/v:', variables('deliveryControllerSettings').machineName, '.', parameters('domainName'))]"
-      },
-      {
-        "name": "XenApp VDA",
-        "category": "Remote Desktop Connections",
-        "path": "[variables('paths').rdpPath]",
-        "icon": "[variables('paths').rdpPath]",
-        "arguments": "[concat('/v:', 'XA-VDA', '.', parameters('domainName'))]"
-      },
-      {
-        "name": "NetScaler Web UI",
-        "category": "NetScaler Management",
-        "path": "[variables('paths').iePath]",
-        "icon": "[variables('paths').iePath]",
-        "arguments": "[variables('paths').netScalerUrl]"
-      },
-      {
-        "name": "XenApp Server VDI",
-        "category": "Remote Desktop Connections",
-        "path": "[variables('paths').rdpPath]",
-        "icon": "[variables('paths').rdpPath]",
-        "arguments": "[concat('/v:', 'XA-VDI', '.', parameters('domainName'))]"
-      },
-      {
-        "name": "Citrix Director",
-        "category": "Administrative Apps",
-        "path": "[variables('paths').iePath]",
-        "icon": "[variables('paths').studioPath]",
-        "arguments": "[variables('paths').directorUrl]"
-      },
-      {
-        "name": "Citrix Studio",
-        "category": "Administrative Apps",
-        "path": "[variables('paths').studioPath]",
-        "icon": "[variables('paths').studioPath]",
-        "type": "Shortcut",
-        "arguments": ""
+      "vdiSettings": {
+        "templateUri": "[concat(variables('artifactsLocation'), 'creatingVda', parameters('imageType'), '.json')]",
+        "extensionUri": "[concat(variables('artifactsLocation'), 'creatingVdaGalleryExtension.json')]",
+        "userImageUri": "[concat(variables('userImageLocation'), 'XD-VDI.vhd')]",
+        "publisher": "citrix",
+        "offer": "[concat('xenapp-vda-vdi', parameters('imageQualifier'))]",
+        "sku": "[concat(parameters('vdaVersion'),'vdi')]",
+        "vdaPrefix": "XA-VDI",
+        "machineSize": "[parameters('machineSize')]",
+        "location": "[parameters('location')]",
+        "vdaCount": 1,
+        "privateIp": "10.0.0.15",
+        "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/VDI.ps1.zip')]",
+        "configurationFunction": "VDI.ps1\\VDI",
+        "prepareConfigurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/PrepareVDI.ps1.zip')]",
+        "prepareConfigurationFunction": "PrepareVDI.ps1\\PrepareVDI",
+        "inboundRules": [ ],
+        "chocolateyPackages": [ ],
+        "publishedApplications": [ ]
       }
-    ],
-
-    "vdaSettings": {
-      "templateUri": "[concat(variables('artifactsLocation'), 'creatingVda', parameters('imageType'), '.json')]",
-      "userImageUri": "[concat(variables('userImageLocation'), 'XD-VDA.vhd')]",
-      "publisher": "citrix",
-      "offer": "[concat('xenapp-vda-rdsh', parameters('imageQualifier'))]",
-      "sku": "[concat(parameters('vdaVersion'),'rdsh')]",
-      "vdaPrefix": "XA-VDA",
-      "machineSize": "[parameters('machineSize')]",
-      "location": "[parameters('location')]",
-      "vdaCount": 1,
-      "privateIp": "10.0.0.14",
-      "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/VDA.ps1.zip')]",
-      "configurationFunction": "VDA.ps1\\VDA",
-      "inboundRules": [ ],
-      "chocolateyPackages": [
-      ],
-      "publishedApplications": "[variables('applications')]"
     },
-
-    "vdiSettings": {
-      "templateUri": "[concat(variables('artifactsLocation'), 'creatingVda', parameters('imageType'), '.json')]",
-      "userImageUri": "[concat(variables('userImageLocation'), 'XD-VDI.vhd')]",
-      "publisher": "citrix",
-      "offer": "[concat('xenapp-vda-vdi', parameters('imageQualifier'))]",
-      "sku": "[concat(parameters('vdaVersion'),'vdi')]",
-      "vdaPrefix": "XA-VDI",
-      "machineSize": "[parameters('machineSize')]",
-      "location": "[parameters('location')]",
-      "vdaCount": 1,
-      "privateIp": "10.0.0.15",
-      "configurationFileUrl": "[concat(variables('artifactsLocation'), 'DSC/VDI.ps1.zip')]",
-      "configurationFunction": "VDI.ps1\\VDI",
-      "inboundRules": [ ],
-      "chocolateyPackages": [ ],
-      "publishedApplications": [ ]
-    }
-  },
 
   "resources": [
     {
@@ -679,6 +709,9 @@
           "publicIpName": {
             "value": "[parameters('publicIpName')]"
           },
+          "location": {
+            "value": "[parameters('location')]"
+          },
           "publicIpGroup": {
             "value": "[parameters('publicIpGroup')]"
           },
@@ -720,6 +753,9 @@
           },
           "dnsServers": {
             "value": "[variables('dnsServers')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
           }
         }
       }
@@ -801,6 +837,9 @@
           },
           "configurationFunction": {
             "value": "[variables('jumpBoxSettings').configurationFunction]"
+          },
+          "azureGov": {
+            "value": "[parameters('azureGov')]"
           }
         }
       }
@@ -881,6 +920,9 @@
           },
           "configurationFunction": {
             "value": "[variables('domainControllerSettings').configurationFunction]"
+          },
+          "azureGov": {
+            "value": "[parameters('azureGov')]"
           }
         }
       }
@@ -893,7 +935,8 @@
       "dependsOn": [
         "Microsoft.Resources/deployments/CreatingLoadBalancer",
         "Microsoft.Resources/deployments/CreatingStorageAccount",
-        "Microsoft.Resources/deployments/CreatingPublicIp"
+        "Microsoft.Resources/deployments/CreatingPublicIp",
+        "Microsoft.Resources/deployments/UpdatingVnetDns"
       ],
       "properties": {
         "mode": "Incremental",
@@ -949,6 +992,9 @@
           },
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
+          },
+          "azureGov": {
+            "value": "[parameters('azureGov')]"
           }
         }
       }
@@ -961,7 +1007,8 @@
       "dependsOn": [
         "Microsoft.Resources/deployments/CreatingNetScaler",
         "Microsoft.Resources/deployments/CreatingStorageAccount",
-        "Microsoft.Resources/deployments/CreatingPublicIp"
+        "Microsoft.Resources/deployments/CreatingPublicIp",
+        "Microsoft.Resources/deployments/CreatingNetScaler"
       ],
       "properties": {
         "mode": "Incremental",
@@ -1110,11 +1157,174 @@
           },
           "configurationFunction": {
             "value": "[variables('deliveryControllerSettings').configurationFunction]"
+          },
+          "azureGov": {
+            "value": "[parameters('azureGov')]"
           }
         }
       }
     },
+    {
+      "name": "CreatingDeliveryControllerExtension",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingDeliveryController"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deliveryControllerSettings').ExtensionUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
 
+          // Infrastructure
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorageAccount')]"
+          },
+          "imageUri": {
+            "value": "[variables('deliveryControllerSettings').userImageUri]"
+          },
+          "publisher": {
+            "value": "[variables('deliveryControllerSettings').publisher]"
+          },
+          "offer": {
+            "value": "[variables('deliveryControllerSettings').offer]"
+          },
+          "sku": {
+            "value": "[variables('deliveryControllerSettings').sku]"
+          },
+          "machineSize": {
+            "value": "[variables('deliveryControllerSettings').machineSize]"
+          },
+          "machineName": {
+            "value": "[variables('deliveryControllerSettings').machineName]"
+          },
+          "privateIp": {
+            "value": "[variables('deliveryControllerSettings').privateIp]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "dnsServers": {
+            "value": "[variables('dnsServers')]"
+          },
+          "lbBapId": {
+            "value": "[variables('loadBalancerSettings').lbapid]"
+          },
+          "lbInboundRules": {
+            "value": "[concat(variables('deliveryControllerSettings').inboundRulesInitial, parameters('customInboundRules').assignments.deliveryController)]"
+          },
+
+          // Credentials and domain
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "domainControllerFQDN": {
+            "value": "[variables('domainControllerSettings').fqdn]"
+          },
+          "domainControllerPrivateIp": {
+            "value": "[variables('domainControllerSettings').privateIp]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+
+          // Delegated servers
+          "sqlServerFQDN": {
+            "value": "[variables('sqlServerSettings').fqdn]"
+          },
+          "sqlServerInstance": {
+            "value": "[variables('sqlServerSettings').instance]"
+          },
+          "licenseServerFQDN": {
+            "value": "[variables('licenseServerSettings').fqdn]"
+          },
+          "netScalerPrivateIp": {
+            "value": "[variables('netScalerSettings').privateIp]"
+          },
+
+          // StoreFront
+          "storeFrontFQDN": {
+            "value": "[variables('storeFrontSettings').fqdn]"
+          },
+          "virtualServerName": {
+            "value": "[variables('netScalerSettings').virtualServerName]"
+          },
+          "virtualServerPort": {
+            "value": "[variables('netScalerSettings').httpsPort]"
+          },
+          "forwardServerPort": {
+            "value": "[variables('netScalerSettings').httpPort]"
+          },
+          "storeFrontGatewayName": {
+            "value": "[variables('storeFrontSettings').gatewayName]"
+          },
+          "emailAddress": {
+            "value": "[parameters('emailAddress')]"
+          },
+          "certificateAuthority": {
+            "value": "[parameters('certificateAuthority')]"
+          },
+          "acmeServer": {
+            "value": "[parameters('acmeServer')]"
+          },
+          "gatewayFQDN": {
+            "value": "[variables('gatewayFQDN')]"
+          },
+          "deploymentFQDN": {
+            "value": "[variables('deploymentFQDN')]"
+          },
+          "themeUri": {
+            "value": "[variables('storeFrontSettings').themeUri]"
+          },
+          "html5Mode": {
+            "value": "[variables('storeFrontSettings').html5Mode]"
+          },
+          "appGroups": {
+            "value": "[concat(variables('storeFrontSettings').appGroups, parameters('customApplications').appGroups)]"
+          },
+
+          // Delivery controller
+          "deliveryControllerFQDN": {
+            "value": "[concat(variables('deliveryControllerSettings').fqdn)]"
+          },
+          "siteName": {
+            "value": "[parameters('siteName')]"
+          },
+
+          // Configuration
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "configurationFileUrl": {
+            "value": "[variables('deliveryControllerSettings').configurationFileUrl]"
+          },
+          "configurationFunction": {
+            "value": "[variables('deliveryControllerSettings').configurationFunction]"
+          },
+          "azureGov": {
+            "value": "[parameters('azureGov')]"
+          }
+        }
+      }
+    },
     {
       "name": "CreatingVda",
       "type": "Microsoft.Resources/deployments",
@@ -1122,7 +1332,8 @@
       "dependsOn": [
         "Microsoft.Resources/deployments/CreatingLoadBalancer",
         "Microsoft.Resources/deployments/CreatingStorageAccount",
-        "Microsoft.Resources/deployments/CreatingPublicIp"
+        "Microsoft.Resources/deployments/CreatingPublicIp",
+        "Microsoft.Resources/deployments/CreatingDeliveryController"
       ],
       "properties": {
         "mode": "Incremental",
@@ -1216,15 +1427,131 @@
             "value": "[variables('dscVersion')]"
           },
           "configurationFileUrl": {
-            "value": "[variables('vdaSettings').configurationFileUrl]"
+            "value": "[variables('vdaSettings').prepareConfigurationFileUrl]"
           },
           "configurationFunction": {
-            "value": "[variables('vdaSettings').configurationFunction]"
+            "value": "[variables('vdaSettings').prepareConfigurationFunction]"
+          },
+          "azureGov": {
+            "value": "[parameters('azureGov')]"
           }
         }
       }
     },
-
+    {
+      "name": "CreatingVdaExtension",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingLoadBalancer",
+        "Microsoft.Resources/deployments/CreatingStorageAccount",
+        "Microsoft.Resources/deployments/CreatingPublicIp",
+        "Microsoft.Resources/deployments/CreatingVda",
+        "Microsoft.Resources/deployments/CreatingDeliveryControllerExtension"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vdaSettings').extensionUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorageAccount')]"
+          },
+          "imageUri": {
+            "value": "[variables('vdaSettings').userImageUri]"
+          },
+          "publisher": {
+            "value": "[variables('vdaSettings').publisher]"
+          },
+          "offer": {
+            "value": "[variables('vdaSettings').offer]"
+          },
+          "sku": {
+            "value": "[variables('vdaSettings').sku]"
+          },
+          "machineSize": {
+            "value": "[variables('vdaSettings').machineSize]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "machineName": {
+            "value": "[variables('vdaSettings').vdaPrefix]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "dnsServers": {
+            "value": "[variables('dnsServers')]"
+          },
+          "privateIp": {
+            "value": "[variables('vdaSettings').privateIp]"
+          },
+          "lbBapId": {
+            "value": "[variables('loadBalancerSettings').lbapid]"
+          },
+          "lbInboundRules": {
+            "value": "[concat(variables('vdaSettings').inboundRules, parameters('customInboundRules').assignments.vda)]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "domainControllerFQDN": {
+            "value": "[variables('domainControllerSettings').fqdn]"
+          },
+          "domainControllerIp": {
+            "value": "[variables('domainControllerSettings').privateIp]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "deliveryControllerFQDN": {
+            "value": "[variables('deliveryControllerSettings').fqdn]"
+          },
+          "packages": {
+            "value": "[concat(variables('vdaSettings').chocolateyPackages, parameters('customApplications').chocolateyPackages)]"
+          },
+          "publishedApplications": {
+            "value": "[concat(variables('vdaSettings').publishedApplications, parameters('customApplications').publishedApplications)]"
+          },
+          "storeFrontUrl": {
+            "value": "[variables('paths').storeFrontUrl]"
+          },
+          "deploymentFQDN": {
+            "value": "[variables('deploymentFQDN')]"
+          },
+          "gatewayFQDN": {
+            "value": "[variables('gatewayFQDN')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "configurationFileUrl": {
+            "value": "[variables('vdaSettings').configurationFileUrl]"
+          },
+          "configurationFunction": {
+            "value": "[variables('vdaSettings').configurationFunction]"
+          },
+          "azureGov": {
+            "value": "[parameters('azureGov')]"
+          }
+        }
+      }
+    },
     {
       "name": "CreatingVdi",
       "type": "Microsoft.Resources/deployments",
@@ -1232,7 +1559,8 @@
       "dependsOn": [
         "Microsoft.Resources/deployments/CreatingLoadBalancer",
         "Microsoft.Resources/deployments/CreatingStorageAccount",
-        "Microsoft.Resources/deployments/CreatingPublicIp"
+        "Microsoft.Resources/deployments/CreatingPublicIp",
+        "Microsoft.Resources/deployments/CreatingVda"
       ],
       "properties": {
         "mode": "Incremental",
@@ -1326,21 +1654,136 @@
             "value": "[variables('dscVersion')]"
           },
           "configurationFileUrl": {
-            "value": "[variables('vdiSettings').configurationFileUrl]"
+            "value": "[variables('vdiSettings').prepareConfigurationFileUrl]"
           },
           "configurationFunction": {
-            "value": "[variables('vdiSettings').configurationFunction]"
+            "value": "[variables('vdiSettings').prepareConfigurationFunction]"
+          },
+          "azureGov": {
+            "value": "[parameters('azureGov')]"
           }
         }
       }
     },
-
+    {
+      "name": "CreatingVdiExtensions",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/CreatingLoadBalancer",
+        "Microsoft.Resources/deployments/CreatingStorageAccount",
+        "Microsoft.Resources/deployments/CreatingPublicIp",
+        "Microsoft.Resources/deployments/CreatingVdi"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vdiSettings').extensionUri]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vhdStorageAccount": {
+            "value": "[parameters('vhdStorageAccount')]"
+          },
+          "imageUri": {
+            "value": "[variables('vdiSettings').userImageUri]"
+          },
+          "publisher": {
+            "value": "[variables('vdiSettings').publisher]"
+          },
+          "offer": {
+            "value": "[variables('vdiSettings').offer]"
+          },
+          "sku": {
+            "value": "[variables('vdiSettings').sku]"
+          },
+          "machineSize": {
+            "value": "[variables('vdiSettings').machineSize]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "machineName": {
+            "value": "[variables('vdiSettings').vdaPrefix]"
+          },
+          "availabilitySetId": {
+            "value": "[variables('availabilitySetId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "dnsServers": {
+            "value": "[variables('dnsServers')]"
+          },
+          "privateIp": {
+            "value": "[variables('vdiSettings').privateIp]"
+          },
+          "lbBapId": {
+            "value": "[variables('loadBalancerSettings').lbapid]"
+          },
+          "lbInboundRules": {
+            "value": "[concat(variables('vdiSettings').inboundRules, parameters('customInboundRules').assignments.vdi)]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "domainControllerFQDN": {
+            "value": "[variables('domainControllerSettings').fqdn]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "deliveryControllerFQDN": {
+            "value": "[variables('deliveryControllerSettings').fqdn]"
+          },
+          "domainControllerIp": {
+            "value": "[variables('domainControllerSettings').privateIp]"
+          },
+          "packages": {
+            "value": "[variables('vdiSettings').chocolateyPackages]"
+          },
+          "publishedApplications": {
+            "value": "[variables('vdiSettings').publishedApplications]"
+          },
+          "storeFrontUrl": {
+            "value": "[variables('paths').storeFrontUrl]"
+          },
+          "deploymentFQDN": {
+            "value": "[reference('CreatingPublicIp').outputs.fqdn.value]"
+          },
+          "gatewayFQDN": {
+            "value": "[variables('gatewayFQDN')]"
+          },
+          "artifactsLocationUri": {
+            "value": "[variables('artifactsLocation')]"
+          },
+          "artifactsLocationSasToken": {
+            "value": "[variables('artifactsLocationSasToken')]"
+          },
+          "dscVersion": {
+            "value": "[variables('dscVersion')]"
+          },
+          "configurationFileUrl": {
+            "value": "[variables('vdiSettings').configurationFileUrl]"
+          },
+          "configurationFunction": {
+            "value": "[variables('vdiSettings').configurationFunction]"
+          },
+          "azureGov": {
+            "value": "[parameters('azureGov')]"
+          }
+        }
+      }
+    },
     {
       "name": "UpdatingInboundRules",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2015-01-01",
       "dependsOn": [
-        "Microsoft.Resources/deployments/CreatingDeliveryController"
+        "Microsoft.Resources/deployments/CreatingDeliveryControllerExtension"
       ],
       "properties": {
         "mode": "Incremental",
@@ -1396,6 +1839,9 @@
           },
           "rules": {
             "value": "[concat(variables('deliveryControllerSettings').inboundRulesFinal, parameters('customInboundRules').assignments.deliveryController)]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
           }
         }
       }
@@ -1429,6 +1875,9 @@
           },
           "rules": {
             "value": "[concat(variables('netScalerSettings').inboundRulesFinal, parameters('customInboundRules').assignments.netScaler)]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
           }
         }
       }

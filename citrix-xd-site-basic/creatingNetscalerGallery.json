@@ -99,6 +99,17 @@
       "metadata": {
         "description": "Specifies the password of the administrator for machines, Active Directory domain, NetScaler and XenApp."
       }
+    },
+    "azureGov": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the shared access signature token which provides access to the base artifacts location."
+      },
+      "defaultValue": "true",
+      "allowedValues": [
+        "true",
+        "false"
+      ]
     }
   },
   "variables": {
@@ -113,7 +124,16 @@
     "nicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]",
     "machineId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('machineName'))]",
     "osDiskName": "[concat(resourceGroup().name,'-',parameters('machineName'),'-osdisk')]",
-    "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
+    "osDisk": {
+      "true": {
+        "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.usgovcloudapi.net/vhds/',variables('osDiskName'),'.vhd')]"
+      },
+      "false": {
+        "osDiskUri": "[concat('http://',parameters('vhdStorageAccount'),'.blob.core.windows.net/vhds/',variables('osDiskName'),'.vhd')]"
+      }
+    },
+    "currentOsDisk": "[variables('osDisk')[parameters('azureGov')]]",
+    "osDiskUri": "[variables('currentOsDisk').osDiskUri]"
   },
   "resources": [
     {
