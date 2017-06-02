@@ -33,15 +33,15 @@
       }
     },
     "vhdStorageNewOrExisting": {
-      "type": "string",
-      "defaultValue": "new",
-      "allowedValues": [
-        "new",
-        "existing"
-      ],
-      "metadata": {
-        "description": "Specifies whether the storage account should be created or already exists."
-      }
+        "type": "string",
+        "defaultValue": "new",
+        "allowedValues": [
+            "new",
+            "existing"
+        ],
+        "metadata": {
+            "description": "Specifies whether the storage account should be created or already exists."
+        }
     },
     "userImageContainerName": {
       "type": "string",
@@ -51,15 +51,15 @@
       }
     },
     "imageType": {
-      "type": "string",
-      "defaultValue": "Gallery",
-      "allowedValues": [
-        "Gallery",
-        "User"
-      ],
-      "metadata": {
-        "description": "Specifies whether the template should deploy from the Azure Marketplace gallery or from user images in the storage account specified by 'vhdStorageAccount."
-      }
+        "type": "string",
+        "defaultValue": "Gallery",
+        "allowedValues": [
+            "Gallery",
+            "User"
+        ],
+        "metadata": {
+            "description": "Specifies whether the template should deploy from the Azure Marketplace gallery or from user images in the storage account specified by 'vhdStorageAccount."
+        }
     },
     "imageQualifier": {
       "type": "string",
@@ -290,8 +290,8 @@
       "userImageContainerName": "[parameters('userImageContainerName')]",
       "userImageLocation": "[concat('http://', parameters('vhdStorageAccount'), '.blob.core.windows.net/', variables('userImageContainerName'), '/')]",
 
-      "dscVersion": "2.19",
-
+      "dscVersion": "2.24",
+      
       "vnetName": "VirtualNetwork",
       "vnetAddressRange": "10.0.0.0/16",
       "subnetName": "Subnet",

@@ -317,8 +317,9 @@
           "properties": {
             "publisher": "Microsoft.Powershell",
             "type": "DSC",
-            "typeHandlerVersion": "2.19",
-             "settings": {
+            "typeHandlerVersion": "2.24",
+            "autoUpgradeMinorVersion": false,
+            "settings": {
               "modulesUrl": "[parameters('configurationFileUrl')]",
               "sasToken": "[parameters('artifactsLocationSasToken')]",
               "configurationFunction": "[parameters('configurationFunction')]",

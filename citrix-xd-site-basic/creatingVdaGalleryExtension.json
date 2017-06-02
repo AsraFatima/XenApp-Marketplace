@@ -172,7 +172,7 @@
         "description": "Specifies the version of the DSC extension to use."
       }
     },
-    "configurationFileUrl": {
+   "configurationFileUrl": {
       "type": "string",
       "metadata": {
         "description": "Specifies the URI of the DSC configuration script."
@@ -231,8 +231,8 @@
             "properties": {
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
-                "autoUpgradeMinorVersion": true,
-                "typeHandlerVersion": "2.19",
+                "autoUpgradeMinorVersion": false,
+                "typeHandlerVersion": "2.24",
                 "settings": {
                     "modulesUrl": "[parameters('configurationFileUrl')]",
                     "sasToken": "[parameters('artifactsLocationSasToken')]",
