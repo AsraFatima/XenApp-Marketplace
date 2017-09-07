@@ -331,7 +331,7 @@
             "properties": {
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
-                "typeHandlerVersion": "2.24",
+                "typeHandlerVersion": "[parameters('dscVersion')]",
                 "autoUpgradeMinorVersion": false,
                 "settings": {
                     "modulesUrl": "[parameters('configurationFileUrl')]",

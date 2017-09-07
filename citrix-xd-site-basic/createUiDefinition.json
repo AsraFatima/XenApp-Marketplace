@@ -72,121 +72,71 @@
                 "name": "vhdStorageType",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Storage Type",
-                "defaultValue": "SSD",
+                "defaultValue": "HDD",
                 "toolTip": "Select the storage type for the deployment.",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "SSD",
-                      "value": "Standard_LRS"
-                    },                   
-                    {
                       "label": "HDD",
+                      "value": "Standard_LRS"
+                    },
+                    {
+                      "label": "SSD",
                       "value": "Premium_LRS"
                     }
                   ]
-                }                
+                }
               },
               {
                 "name": "vmSizePremium",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
-                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 6 virtual machines of the specified size will be created as a part of the solution template deployment.",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 5 virtual machines of the specified size will be created as a part of the solution template deployment.",
                 "recommendedSizes": [
-                  "Standard_DS2_v2",
-                  "Standard_DS3_v2",
-                  "Standard_DS4_v2"
+                  "Standard_DS2_v2"
                 ],
                 "constraints": {
                   "allowedSizes": [
-                    "Standard_DS2_v2",
-                    "Standard_DS3_v2",
-                    "Standard_DS4_v2",
-                    "Standard_DS5_v2",
-                    "Standard_DS11_v2",
-                    "Standard_DS12_v2",
-                    "Standard_DS13_v2",
-                    "Standard_DS14_v2",
-                    "Standard_DS15_v2",
-					"Standard_DS2",
-                    "Standard_DS3",
-                    "Standard_DS4",
-                    "Standard_DS11",
-                    "Standard_D12",
-                    "Standard_DS13",
-                    "Standard_DS14",
-                    "Standard_GS1",
-                    "Standard_GS2",
-                    "Standard_GS3",
-                    "Standard_GS4"
+                    "Standard_DS2_v2"
                   ]
                 },
                 "visible": "[and(contains(steps('infraConfig').virtualMachineSettings.vhdStorageType,'Premium_LRS'),not(contains(location(),'usgov')))]",
                 "osPlatform": "Windows",
-                "count": 6
+                "count": 5
               },
               {
                 "name": "vmUSGovSizePremium",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
-                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 6 virtual machines of the specified size will be created as a part of the solution template deployment.",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 5 virtual machines of the specified size will be created as a part of the solution template deployment.",
                 "recommendedSizes": [
-                  "Standard_DS2",
-                  "Standard_DS3",
-                  "Standard_DS4"
+                  "Standard_DS2"
                 ],
                 "constraints": {
                   "allowedSizes": [
-                    "Standard_DS2",
-                    "Standard_DS3",
-                    "Standard_DS4",
-                    "Standard_DS11",
-                    "Standard_D12",
-                    "Standard_DS13",
-                    "Standard_DS14",
-                    "Standard_GS1",
-                    "Standard_GS2",
-                    "Standard_GS3",
-                    "Standard_GS4"
+                    "Standard_DS2"
                   ]
                 },
                 "visible": "[and(contains(steps('infraConfig').virtualMachineSettings.vhdStorageType,'Premium_LRS'),contains(location(),'usgov'))]",
                 "osPlatform": "Windows",
-                "count": 6
+                "count": 5
               },
               {
                 "name": "vmSizeStandard",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
-                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 6 virtual machines of the specified size will be created as a part of the solution template deployment.",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 5 virtual machines of the specified size will be created as a part of the solution template deployment.",
                 "recommendedSizes": [
-                  "Standard_D2_v2",
-                  "Standard_D3_v2",
-                  "Standard_D4_v2"
+                  "Standard_D2_v2"
                 ],
                 "constraints": {
                   "allowedSizes": [
-                    "Standard_A2",
-                    "Standard_A3",
-                    "Standard_A4",
-                    "Standard_D12",
-                    "Standard_D13",
-                    "Standard_D14",
-                    "Standard_G2",
-                    "Standard_G3",
-                    "Standard_G4",
-                    "Standard_G5",
-                    "Standard_D2_v2",
-                    "Standard_D3_v2",
-                    "Standard_D4_v2",
-                    "Standard_D5_v2",
-                    "Standard_D11_v2",
-                    "Standard_D12_v2"
+                    "Standard_D2_v2"
                   ]
                 },
                 "visible": "[contains(steps('infraConfig').virtualMachineSettings.vhdStorageType,'Standard_LRS')]",
                 "osPlatform": "Windows",
-                "count": 6
+                "count": 5
               }
             ]
           },
@@ -215,8 +165,105 @@
                   ]
                 },
                 "visible": true
+              },
+              {
+                "name": "vdaSizePremium",
+                "type": "Microsoft.Compute.SizeSelector",
+                "label": "Size",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. The specified size will be used  as a part of the solution template deployment to deploy the XenApp VDA virtual machine. All the other virtual machines deployed as a part of the solution template deployment will be of size Standard_DS2.",
+                "recommendedSizes": [
+                  "Standard_DS2_v2",
+                  "Standard_DS3_v2",
+                  "Standard_DS4_v2"
+                ],
+                "constraints": {
+                  "allowedSizes": [
+                    "Standard_DS2_v2",
+                    "Standard_DS3_v2",
+                    "Standard_DS4_v2",
+                    "Standard_DS5_v2",
+                    "Standard_DS11_v2",
+                    "Standard_DS12_v2",
+                    "Standard_DS13_v2",
+                    "Standard_DS14_v2",
+                    "Standard_DS15_v2",
+                    "Standard_DS2",
+                    "Standard_DS3",
+                    "Standard_DS4",
+                    "Standard_DS11",
+                    "Standard_DS12",
+                    "Standard_DS13",
+                    "Standard_DS14",
+                    "Standard_GS1",
+                    "Standard_GS2",
+                    "Standard_GS3",
+                    "Standard_GS4"
+                  ]
+                },
+                "visible": "[and(contains(steps('infraConfig').virtualMachineSettings.vhdStorageType,'Premium_LRS'),not(contains(location(),'usgov')))]",
+                "osPlatform": "Windows",
+                "count": 1
+              },
+              {
+                "name": "vdaUSGovSizePremium",
+                "type": "Microsoft.Compute.SizeSelector",
+                "label": "Size",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. The specified size will be used  as a part of the solution template deployment to deploy the XenApp VDA virtual machine. All the other virtual machines deployed as a part of the solution template deployment will be of size Standard_DS2.",
+                "recommendedSizes": [
+                  "Standard_DS2",
+                  "Standard_DS3",
+                  "Standard_DS4"
+                ],
+                "constraints": {
+                  "allowedSizes": [
+                    "Standard_DS2",
+                    "Standard_DS3",
+                    "Standard_DS4",
+                    "Standard_DS11",
+                    "Standard_DS12",
+                    "Standard_DS13",
+                    "Standard_DS14",
+                    "Standard_GS1",
+                    "Standard_GS2",
+                    "Standard_GS3",
+                    "Standard_GS4"
+                  ]
+                },
+                "visible": "[and(contains(steps('infraConfig').virtualMachineSettings.vhdStorageType,'Premium_LRS'),contains(location(),'usgov'))]",
+                "osPlatform": "Windows",
+                "count": 1
+              },
+              {
+                "name": "vdaSizeStandard",
+                "type": "Microsoft.Compute.SizeSelector",
+                "label": "Size",
+                "toolTip": "Specify the size of all the virtual machines in the deployment. A total of 6 virtual machines of the specified size will be created as a part of the solution template deployment.",
+                "recommendedSizes": [
+                  "Standard_D2_v2",
+                  "Standard_D3_v2",
+                  "Standard_D4_v2"
+                ],
+                "constraints": {
+                  "allowedSizes": [
+                    "Standard_D12",
+                    "Standard_D13",
+                    "Standard_D14",
+                    "Standard_G2",
+                    "Standard_G3",
+                    "Standard_G4",
+                    "Standard_G5",
+                    "Standard_D2_v2",
+                    "Standard_D3_v2",
+                    "Standard_D4_v2",
+                    "Standard_D5_v2",
+                    "Standard_D11_v2",
+                    "Standard_D12_v2"
+                  ]
+                },
+                "visible": "[contains(steps('infraConfig').virtualMachineSettings.vhdStorageType,'Standard_LRS')]",
+                "osPlatform": "Windows",
+                "count": 1
               }
-
             ]
           }
 
@@ -229,8 +276,9 @@
       "vhdStorageType": "[steps('infraConfig').virtualMachineSettings.vhdStorageType]",
       "emailAddress": "[steps('infraConfig').adminSettings.emailAddress]",
       "machineSize": "[coalesce(steps('infraConfig').virtualMachineSettings.vmSizePremium,steps('infraConfig').virtualMachineSettings.vmSizeStandard,steps('infraConfig').virtualMachineSettings.vmUSGovSizePremium) ]",
+      "vdamachineSize": "[coalesce(steps('infraConfig').vdaSettings.vdaSizePremium,steps('infraConfig').vdaSettings.vdaSizeStandard,steps('infraConfig').vdaSettings.vdaUSGovSizePremium) ]",
       "vdaVersion": "[steps('infraConfig').vdaSettings.vdaVersion]",
-      "azureGov":"[toLower(string(contains(location(),'usgov')))]",
+      "azureGov": "[toLower(string(contains(location(),'usgov')))]",
       "location": "[location()]"
     }
   }

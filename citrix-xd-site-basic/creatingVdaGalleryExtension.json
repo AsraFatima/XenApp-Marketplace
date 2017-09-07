@@ -232,7 +232,7 @@
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
                 "autoUpgradeMinorVersion": false,
-                "typeHandlerVersion": "2.24",
+                "typeHandlerVersion": "[parameters('dscVersion')]",
                 "settings": {
                     "modulesUrl": "[parameters('configurationFileUrl')]",
                     "sasToken": "[parameters('artifactsLocationSasToken')]",
